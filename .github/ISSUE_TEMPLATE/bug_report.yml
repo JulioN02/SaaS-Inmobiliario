@@ -1,0 +1,41 @@
+name: Bug Report
+description: Reporta un bug para ayudar a mejorar el proyecto
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Descripción
+        Describe el bug claramente.
+
+        ## Pasos para reproducir
+        1.
+        2.
+        3.
+
+        ## Comportamiento esperado
+        ¿Qué debería pasar?
+
+        ## Comportamiento actual
+        ¿Qué pasa actualmente?
+
+        ## Screenshots / Logs
+        Si aplica, añade screenshots o logs.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: "OS, Node version, browser, etc."
+      placeholder: "Ej: macOS 14, Node 20, Chrome 120"
