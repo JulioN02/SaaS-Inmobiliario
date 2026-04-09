@@ -1,0 +1,85 @@
+# =============================================================================
+# SaaS Inmobiliario — Docker Compose
+# Uso: docker compose up (desarrollo) | docker compose -f docker-compose.yml -f docker-compose.prod.yml up (producción)
+# =============================================================================
+
+# ── Variables de entorno reutilizables ───────────────────────────────────────
+x-db-env: &db-env
+  POSTGRES_USER: saas_admin
+  POSTGRES_PASSWORD: saas_dev_password_2026
+  POSTGRES_DB: saas_inmobiliario
+
+x-jwt-env: &jwt-env
+  JWT_SECRET: "supersecretsaasjwt_2026_desarrollo"
+  JWT_EXPIRES_IN: "1h"
+
+# ── Servicios ────────────────────────────────────────────────────────────────
+services:
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: saas-postgres
+    restart: unless-stopped
+    environment:
+      <<: *db-env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saas_admin -d saas_inmobiliario"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Backend (desarrollo con hot reload) ────────────────────────────────────
+  backend:
+    build:
+      context: ./Saas-Inmobiliario/backend
+      target: production
+    container_name: saas-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: "development"
+      PORT: "3000"
+      DATABASE_URL: "postgresql://saas_admin:saas_dev_password_2026@postgres:5432/saas_inmobiliario"
+      <<: *jwt-env
+      PLATFORM_TENANT_ID: "00000000-0000-0000-0000-000000000000"
+      SUPER_ADMIN_EMAIL: "admin@platform.com"
+      SUPER_ADMIN_PASSWORD: "Admin_Pass_2026!"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Para desarrollo con hot reload, descomentar:
+    # volumes:
+    #   - ./Saas-Inmobiliario/backend/src:/app/src
+    #   - ./Saas-Inmobiliario/backend/prisma:/app/prisma
+    # command: sh -c "npx prisma migrate dev && npm run dev"
+
+  # ── Backend (producción — multi-stage build, no hot reload) ────────────────
+  # Descomentar para usar modo producción:
+  # backend-prod:
+  #   build:
+  #     context: ./Saas-Inmobiliario/backend
+  #     target: production
+  #   container_name: saas-backend-prod
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NODE_ENV: "production"
+  #     PORT: "3000"
+  #     DATABASE_URL: "postgresql://saas_admin:saas_dev_password_2026@postgres:5432/saas_inmobiliario"
+  #     <<: *jwt-env
+  #     PLATFORM_TENANT_ID: "00000000-0000-0000-0000-000000000000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+# ── Volúmenes persistentes ───────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local

@@ -1,0 +1,61 @@
+Unauthorized:
+  description: Token inválido, ausente o expirado
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ApiError'
+      example:
+        statusCode: 401
+        error: Unauthorized
+        message: Token inválido o expirado
+
+Forbidden:
+  description: Sin permisos para esta operación
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ApiError'
+      example:
+        statusCode: 403
+        error: Forbidden
+        message: No tienes permisos para realizar esta acción
+
+NotFound:
+  description: Recurso no encontrado o no pertenece al tenant
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ApiError'
+      example:
+        statusCode: 404
+        error: Not Found
+        message: Recurso no encontrado
+
+BadRequest:
+  description: Datos inválidos en la petición
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ApiError'
+
+Conflict:
+  description: Conflicto con el estado actual del recurso
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ApiError'
+      example:
+        statusCode: 409
+        error: Conflict
+        message: La unidad ya tiene una ocupación activa
+
+UnprocessableEntity:
+  description: Regla de negocio violada
+  content:
+    application/json:
+      schema:
+        $ref: '../components/schemas.yaml#/ApiError'
+      example:
+        statusCode: 422
+        error: Unprocessable Entity
+        message: El tenant ha alcanzado el límite de propiedades de su plan

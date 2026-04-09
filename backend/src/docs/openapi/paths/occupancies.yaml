@@ -1,0 +1,155 @@
+collection:
+  get:
+    tags: [Occupancies]
+    summary: Listar ocupaciones del tenant
+    description: Historial completo e inmutable. No se elimina.
+    operationId: listOccupancies
+    parameters:
+      - name: unitId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: residentId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: isActive
+        in: query
+        schema:
+          type: boolean
+      - $ref: '../components/parameters.yaml#/QueryPage'
+      - $ref: '../components/parameters.yaml#/QueryLimit'
+    responses:
+      '200':
+        description: Lista de ocupaciones
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas.yaml#/Occupancy'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Occupancies]
+    summary: Crear ocupación (asignar residente a unidad)
+    description: |
+      Validaciones de dominio:
+      - La unidad debe estar en estado `AVAILABLE`
+      - No puede existir otra ocupación activa del mismo tipo en la misma unidad
+      Al crear, la unidad cambia automáticamente a `OCCUPIED`.
+      Genera evento auditable.
+    operationId: createOccupancy
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [unitId, residentId, type, startDate]
+            properties:
+              unitId:
+                type: string
+                format: uuid
+              residentId:
+                type: string
+                format: uuid
+              type:
+                $ref: '../components/schemas.yaml#/OccupancyType'
+              startDate:
+                type: string
+                format: date
+                example: "2025-01-01"
+              notes:
+                type: string
+                nullable: true
+                maxLength: 500
+    responses:
+      '201':
+        description: Ocupación creada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Occupancy'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '409':
+        $ref: '../components/responses.yaml#/Conflict'
+      '422':
+        $ref: '../components/responses.yaml#/UnprocessableEntity'
+
+item:
+  get:
+    tags: [Occupancies]
+    summary: Obtener ocupación por ID
+    operationId: getOccupancyById
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    responses:
+      '200':
+        description: Ocupación encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Occupancy'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+close:
+  patch:
+    tags: [Occupancies]
+    summary: Cerrar ocupación activa
+    description: |
+      Registra la fecha de salida. La unidad vuelve a `AVAILABLE`.
+      El historial es inmutable — no se elimina.
+      Genera evento auditable.
+    operationId: closeOccupancy
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [endDate]
+            properties:
+              endDate:
+                type: string
+                format: date
+                example: "2025-12-31"
+              notes:
+                type: string
+                nullable: true
+                maxLength: 500
+    responses:
+      '200':
+        description: Ocupación cerrada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Occupancy'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '409':
+        $ref: '../components/responses.yaml#/Conflict'

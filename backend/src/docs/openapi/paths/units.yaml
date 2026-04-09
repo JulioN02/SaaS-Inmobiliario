@@ -1,0 +1,174 @@
+collection:
+  get:
+    tags: [Units]
+    summary: Listar unidades del tenant
+    operationId: listUnits
+    parameters:
+      - name: propertyId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: towerId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        schema:
+          $ref: '../components/schemas.yaml#/UnitStatus'
+      - $ref: '../components/parameters.yaml#/QueryPage'
+      - $ref: '../components/parameters.yaml#/QueryLimit'
+    responses:
+      '200':
+        description: Lista de unidades
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas.yaml#/Unit'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Units]
+    summary: Crear unidad
+    description: |
+      La propiedad (y torre si aplica) deben pertenecer al tenant.
+      Valida límite de unidades según plan.
+    operationId: createUnit
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [propertyId, identifier]
+            properties:
+              propertyId:
+                type: string
+                format: uuid
+              towerId:
+                type: string
+                format: uuid
+                nullable: true
+                description: Requerido si la propiedad tiene torres
+              identifier:
+                type: string
+                minLength: 1
+                maxLength: 20
+                example: Apto 101
+              floor:
+                type: integer
+                minimum: 1
+                nullable: true
+              monthlyFeeAmount:
+                type: number
+                format: float
+                minimum: 0
+                multipleOf: 0.01
+    responses:
+      '201':
+        description: Unidad creada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Unit'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '422':
+        $ref: '../components/responses.yaml#/UnprocessableEntity'
+
+item:
+  get:
+    tags: [Units]
+    summary: Obtener unidad por ID
+    operationId: getUnitById
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    responses:
+      '200':
+        description: Unidad encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Unit'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Units]
+    summary: Actualizar unidad
+    description: Genera evento auditable al cambiar estado.
+    operationId: updateUnit
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              identifier:
+                type: string
+                minLength: 1
+                maxLength: 20
+              floor:
+                type: integer
+                minimum: 1
+                nullable: true
+              status:
+                $ref: '../components/schemas.yaml#/UnitStatus'
+              monthlyFeeAmount:
+                type: number
+                format: float
+                minimum: 0
+                multipleOf: 0.01
+    responses:
+      '200':
+        description: Unidad actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Unit'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  delete:
+    tags: [Units]
+    summary: Eliminar unidad (soft delete)
+    description: Bloqueado si tiene occupancies activas o historial de cuotas.
+    operationId: deleteUnit
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    responses:
+      '204':
+        description: Eliminada (soft delete)
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '409':
+        $ref: '../components/responses.yaml#/Conflict'

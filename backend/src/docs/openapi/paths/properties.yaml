@@ -1,0 +1,289 @@
+# ── PROPERTIES ──────────────────────────────────────────────────────────────
+
+propertiesCollection:
+  get:
+    tags: [Properties]
+    summary: Listar propiedades del tenant
+    operationId: listProperties
+    parameters:
+      - $ref: '../components/parameters.yaml#/QueryPage'
+      - $ref: '../components/parameters.yaml#/QueryLimit'
+    responses:
+      '200':
+        description: Lista de propiedades
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas.yaml#/Property'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Properties]
+    summary: Crear propiedad
+    description: Valida límite por plan (BASIC = máx. 1). Genera evento auditable.
+    operationId: createProperty
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name, propertyType]
+            properties:
+              name:
+                type: string
+                minLength: 3
+                maxLength: 100
+                example: Conjunto El Prado
+              propertyType:
+                $ref: '../components/schemas.yaml#/PropertyType'
+              address:
+                type: string
+                maxLength: 200
+              description:
+                type: string
+                maxLength: 500
+    responses:
+      '201':
+        description: Propiedad creada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Property'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '422':
+        $ref: '../components/responses.yaml#/UnprocessableEntity'
+
+propertyItem:
+  get:
+    tags: [Properties]
+    summary: Obtener propiedad por ID
+    operationId: getPropertyById
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    responses:
+      '200':
+        description: Propiedad encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Property'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Properties]
+    summary: Actualizar propiedad
+    operationId: updateProperty
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 3
+                maxLength: 100
+              address:
+                type: string
+                maxLength: 200
+              description:
+                type: string
+                maxLength: 500
+    responses:
+      '200':
+        description: Propiedad actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Property'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  delete:
+    tags: [Properties]
+    summary: Eliminar propiedad (soft delete)
+    description: |
+      Bloqueado si tiene unidades u occupancies asociadas.
+      Genera evento auditable.
+    operationId: deleteProperty
+    parameters:
+      - $ref: '../components/parameters.yaml#/PathId'
+    responses:
+      '204':
+        description: Eliminada (soft delete)
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '409':
+        $ref: '../components/responses.yaml#/Conflict'
+
+# ── TOWERS ───────────────────────────────────────────────────────────────────
+
+towersCollection:
+  get:
+    tags: [Towers]
+    summary: Listar torres de una propiedad
+    operationId: listTowers
+    parameters:
+      - name: propertyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Lista de torres
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas.yaml#/Tower'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  post:
+    tags: [Towers]
+    summary: Crear torre en una propiedad
+    operationId: createTower
+    parameters:
+      - name: propertyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 50
+                example: Torre A
+              floorsCount:
+                type: integer
+                minimum: 1
+    responses:
+      '201':
+        description: Torre creada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Tower'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequest'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+towerItem:
+  patch:
+    tags: [Towers]
+    summary: Actualizar torre
+    operationId: updateTower
+    parameters:
+      - name: propertyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: '../components/parameters.yaml#/PathId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 50
+              floorsCount:
+                type: integer
+                minimum: 1
+    responses:
+      '200':
+        description: Torre actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas.yaml#/Tower'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  delete:
+    tags: [Towers]
+    summary: Eliminar torre (soft delete)
+    description: Bloqueado si tiene unidades activas.
+    operationId: deleteTower
+    parameters:
+      - name: propertyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: '../components/parameters.yaml#/PathId'
+    responses:
+      '204':
+        description: Eliminada (soft delete)
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '409':
+        $ref: '../components/responses.yaml#/Conflict'
