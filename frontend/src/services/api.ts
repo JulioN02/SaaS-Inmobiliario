@@ -7,7 +7,7 @@ import axios from 'axios';
 
 // ── Configuración base ──────────────────────────────────────────────────────
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -28,12 +28,10 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Adjuntar subdominio del tenant para resolución en el backend
-    const host = window.location.host;
-    const subdomain = host.split('.')[0];
-
-    if (subdomain && subdomain !== 'localhost' && subdomain !== 'www' && subdomain !== 'api') {
-      config.headers.Host = host;
+    // Adjuntar tenantId para resolución en el backend
+    const tenantId = localStorage.getItem('saas_tenant_id');
+    if (tenantId) {
+      config.headers['x-tenant-id'] = tenantId;
     }
 
     return config;

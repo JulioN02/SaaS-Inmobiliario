@@ -53,3 +53,7 @@ postgres_data/
 # ── Temporary files ──────────────────────────────────────────────────────────
 *.tmp
 .cache/
+
+# ── SDD planning artifacts (dev only, not committed) ──────────────────────────
+openspec/
+.atl/

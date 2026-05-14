@@ -83,6 +83,29 @@ export interface Tenant extends BaseEntity {
   contactPhone?: string;
 }
 
+export interface CreateTenantDto {
+  name: string;
+  subdomain: string;
+  plan: TenantPlan;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
+export interface UpdateTenantDto {
+  name?: string;
+  subdomain?: string;
+  plan?: TenantPlan;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
+export interface FindAllTenantsParams {
+  page?: number;
+  limit?: number;
+  status?: TenantStatus;
+  plan?: TenantPlan;
+}
+
 // ── Dominio: Property ───────────────────────────────────────────────────────
 
 export interface Property extends BaseEntity {
@@ -192,6 +215,23 @@ export interface AuditLog {
   snapshot?: Record<string, unknown>;
   ipAddress?: string;
   timestamp: string;
+}
+
+export interface FindAllAuditParams {
+  page?: number;
+  limit?: number;
+  entity?: string;
+  action?: 'CREATE' | 'UPDATE' | 'DELETE';
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface PaginatedAuditLogs {
+  data: AuditLog[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 // ── Métricas ────────────────────────────────────────────────────────────────

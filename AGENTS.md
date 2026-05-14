@@ -21,17 +21,17 @@ Segmento objetivo: conjuntos residenciales pequeños y medianos, torres de apart
 | Capa | Tecnología |
 |------|-----------|
 | Runtime | Node.js |
-| Framework HTTP | Express |
-| Lenguaje | TypeScript (fundamentos: primitivos, union types, type aliases, interfaces) |
+| Framework HTTP | NestJS 10 (sobre Express) |
+| Lenguaje | TypeScript (con decoradores de NestJS, class-validator, class-transformer) |
 | Base de datos | PostgreSQL |
-| ORM | Prisma |
+| ORM | Prisma 5 |
 | Autenticación | JWT (stateless, sin sesiones en memoria) |
-| Contrato API | OpenAPI (docs/openapi.yaml) |
-| Testing | Jest + Supertest |
+| Documentación API | Swagger/OpenAPI (`@nestjs/swagger`, `@ApiProperty` en DTOs) |
+| Testing | Jest (sin Supertest — tests unitarios de controllers/services) |
 
 **Prohibido proponer tecnologías fuera de este stack sin justificación arquitectónica documentada.**
 
-TypeScript se usa con restricción deliberada: sin POO avanzada, sin decoradores, sin patrones de diseño complejos. Solo tipos primitivos, union types, type aliases e interfaces.
+TypeScript se usa siguiendo convenciones de NestJS: decoradores para rutas/validación, clases para DTOs y servicios, inyección de dependencias. No se usa POO avanzada ni patrones de diseño complejos fuera de lo que NestJS provee.
 
 ---
 
@@ -47,101 +47,114 @@ El `tenant_id` nunca proviene del frontend. Siempre se extrae del JWT o se resue
 
 ### Flujo obligatorio de cada request
 ```
-Route → TenantMiddleware → AuthMiddleware → RBACMiddleware → Controller → Service → Repository → DB
-                                                                                          ↓
-                                                                                   AuditService
+Guard → Controller → Service → PrismaService → DB
+  ↑                         ↓
+JwtAuthGuard           AuditService
+TenantGuard
+RbacGuard
 ```
+
+- `JwtAuthGuard`: Valida JWT, extrae `user {id, clientId, role, plan, permissions}` al request.
+- `TenantGuard`: Toma `clientId` del JWT, valida que el tenant esté ACTIVO, asigna `request['tenantId']`.
+- `RbacGuard`: Verifica que el rol del usuario tenga el permiso requerido sobre el recurso.
+- Controladores: métodos de <20 líneas, usan `@TenantId()` y `@User()` decorators, llaman al service.
+- Services: toda la lógica de negocio, reciben `tenantId` como parámetro, filtran queries por tenant.
 
 ### Estructura de carpetas del backend
 ```
-src/
-├── app/
-│   ├── server.ts
-│   └── app.ts
-├── config/
-│   ├── env.ts
-│   ├── database.ts
-│   └── logger.ts
-├── shared/
-│   ├── errors/
-│   ├── utils/
-│   ├── constants/
-│   └── types/
-├── infrastructure/
-│   ├── prisma/
+backend-nest/
+├── src/
+│   ├── main.ts                  # Entry point (NestFactory.create)
+│   ├── app.module.ts            # Módulo raíz
+│   ├── common/
+│   │   ├── guards/              # JwtAuthGuard, TenantGuard, RbacGuard
+│   │   └── decorators/          # @User(), @TenantId()
+│   ├── config/
+│   │   └── prisma.service.ts    # PrismaService (singleton)
+│   ├── shared/
+│   │   └── constants/
+│   │       └── plan-limits.ts   # Límites operativos por plan
+│   └── modules/
+│       ├── tenant/
+│       ├── user/
+│       ├── role/
+│       ├── auth/
+│       ├── property/
+│       ├── tower/
+│       ├── unit/
+│       ├── resident/
+│       ├── occupancy/
+│       ├── fee/
+│       ├── maintenance/
+│       ├── visitor/
+│       ├── announcement/
+│       ├── website/
+│       ├── audit/
+│       ├── metrics/
+│       └── shared/
+│           └── audit.service.ts # Servicio de auditoría compartido
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.ts
 │   └── migrations/
-├── middlewares/
-│   ├── auth.middleware.ts
-│   ├── tenant.middleware.ts
-│   ├── rbac.middleware.ts
-│   └── error.middleware.ts
-├── modules/
-│   ├── tenant/
-│   ├── subscription/
-│   ├── property/
-│   ├── unit/
-│   ├── resident/
-│   ├── occupancy/
-│   ├── fee/
-│   ├── maintenance/
-│   ├── visitor/
-│   ├── announcement/
-│   ├── user/
-│   ├── role/
-│   ├── audit/
-│   ├── website/
-│   └── metrics/
-├── routes/
-│   └── v1.routes.ts
-└── docs/
-    └── openapi.yaml
+├── Dockerfile
+├── .dockerignore
+├── package.json
+└── tsconfig.json
 ```
 
-### Estructura interna de cada módulo
+### Estructura interna de cada módulo NestJS
 ```
 <modulo>/
-├── <modulo>.routes.ts
-├── <modulo>.controller.ts
-├── <modulo>.service.ts
-├── <modulo>.repository.ts
-├── <modulo>.validators.ts
-├── <modulo>.policies.ts
-├── <modulo>.dto.ts
-└── __tests__/
+├── <modulo>.module.ts           # NestJS Module (imports, providers, controllers)
+├── <modulo>.controller.ts       # @Controller(), @Get/@Post/@Patch/@Delete, < 20 líneas por método
+├── <modulo>.service.ts          # @Injectable(), lógica de negocio, recibe tenantId
+├── dto/
+│   ├── create-<modulo>.dto.ts   # Create DTO con @ApiProperty, @IsString, etc.
+│   ├── update-<modulo>.dto.ts   # Update DTO (PartialType)
+│   ├── <modulo>-response.dto.ts # Response DTO
+│   └── find-all-<modulo>.dto.ts # Query params DTO con paginación
+└── <modulo>.controller.spec.ts  # Tests unitarios del controller
 ```
 
 ---
 
 ## 4. Responsabilidades por Capa
 
-### Routes
-- Definir endpoints y aplicar middlewares.
-- Conectar con el controller.
-- **Prohibido:** validaciones complejas, lógica de negocio, acceso a base de datos.
+### Module (NestJS Module)
+- Define qué controllers y services pertenecen al módulo.
+- Importa dependencias compartidas (PrismaService, AuditService).
+- **Prohibido:** lógica de negocio, configuraciones de rutas manuales.
 
 ### Controller
-- Recibir el request HTTP, transformar DTO, invocar el service y formatear la response.
-- **Prohibido:** lógica de negocio, acceso directo a Prisma.
+- Decorado con `@Controller()`, rutas definidas por decoradores (`@Get`, `@Post`, etc.).
+- Usa `@TenantId()` para obtener el tenant del JWT, `@User()` para el usuario autenticado.
+- Invoca al service, NO accede a Prisma directamente.
 - Target: menos de 20 líneas promedio por método.
+- **Prohibido:** lógica de negocio, acceso directo a Prisma.
 
 ### Service (corazón del sistema)
-- Validar reglas de dominio, aplicar límites por plan, orquestar repositories, emitir eventos auditables, gestionar transacciones.
-- Debe ser testeable sin Express (sin dependencia del ciclo request/response).
+- Decorado con `@Injectable()`. Recibe `tenantId` como primer parámetro en cada método.
+- Valida reglas de dominio, aplica límites por plan, orquesta queries, emite eventos de auditoría.
+- Llama a `auditService.log()` en cada mutación (create, update, delete).
+- Debe ser testeable sin ciclo HTTP (solo inyección de dependencias).
 
-### Repository (Prisma encapsulado)
-- Única capa que accede a Prisma.
-- **Ningún repository acepta operaciones sin `tenant_id`.**
-- Todas las consultas incluyen filtro por `tenant_id`.
-- Prisma no se expone fuera de esta capa bajo ninguna circunstancia.
+### PrismaService (único acceso a DB)
+- Singleton de NestJS que expone el PrismaClient.
+- **Toda query incluye `tenantId`** — ningún registro se lee/escribe sin filtro de tenant.
+- Prisma solo se accede desde services, no desde controllers.
 
-### Validators
-- Validaciones sintácticas: tipos, formato email, fechas, campos requeridos.
+### DTOs (Validación sintáctica)
+- Decorados con `@ApiProperty()` (Swagger) y validación de `class-validator` (`@IsString`, `@IsOptional`, etc.).
+- CreateDTOs con campos requeridos, UpdateDTOs con `PartialType`.
+- ResponseDTOs definen la estructura de salida exacta.
 - La validación semántica (reglas de negocio) pertenece al Service.
 
-### Policies (RBAC dinámico)
-- Cada módulo declara los permisos que requiere.
-- Roles no se hardcodean en código.
-- El RBAC Middleware verifica JWT, resuelve `tenant_id` y evalúa si el rol tiene el permiso requerido.
+### Guards (RBAC)
+- `JwtAuthGuard`: decodifica JWT y adjunta payload al request.
+- `TenantGuard`: extrae/isola el tenantId del JWT.
+- `RbacGuard('resource', 'action')`: verifica permiso contra el payload del JWT.
+- Roles no hardcodeados — se evalúan contra la matriz de permisos en el token.
 
 ---
 
@@ -261,9 +274,10 @@ Los permisos se evalúan por: Rol + `tenant_id`. No se hardcodean roles en el c�
 
 - Contraseñas siempre hasheadas con bcrypt.
 - JWT con expiración definida. Stateless, sin sesiones en memoria.
-- `tenant_id` extraído del JWT, nunca del body ni de query params.
-- Validación de entrada obligatoria antes de llegar al Service.
-- Manejo centralizado de errores en el Error Middleware.
+- `tenant_id` extraído del JWT vía `TenantGuard` + `@TenantId()` decorator. Nunca proviene del body ni de query params.
+- Validación de entrada con `class-validator` DTOs antes de llegar al Service.
+- Guards de NestJS protegen rutas: `JwtAuthGuard` → `TenantGuard` → `RbacGuard`.
+- `TenantGuard` también soporta resolución por subdominio y header `x-tenant-id` para endpoints públicos.
 
 ---
 
@@ -342,10 +356,12 @@ GET    /metrics
 
 ## 12. Testing
 
-- Herramienta única: **Jest + Supertest**.
-- Services testeables sin Express.
-- **Unit tests:** Service, validación de reglas de dominio.
-- **Integration tests:** Endpoints con tenant aislado, validación RBAC, validación de no fuga multi-tenant.
+- Herramienta: **Jest** (configurado en `package.json` con `testRegex: ".*\\.spec\\.ts$"`).
+- Services testeables sin ciclo HTTP (solo inyección de dependencias mockeadas).
+- **Unit tests:** Controller specs con servicios mockeados, validación de reglas de dominio.
+- **Pendiente:** Tests de integración multi-tenant que verifiquen aislamiento entre tenants (no fuga de datos).
+- Cada módulo tiene su `controller.spec.ts` y opcionalmente `service.spec.ts`.
+- Comandos: `npm test` (unit), `npm run test:cov` (coverage).
 
 ### Definition of Done por módulo
 Un módulo está terminado cuando cumple todos estos criterios:
@@ -379,9 +395,9 @@ Un módulo está terminado cuando cumple todos estos criterios:
 4. Nunca permitir una query sin `tenant_id`.
 5. Toda acción crítica genera log de auditoría.
 6. Controllers: menos de 20 líneas promedio por método.
-7. Services: testeables sin Express.
+7. Services: testeables sin ciclo HTTP (solo DI mockeada).
 8. No hardcodear roles en el código.
-9. No mezclar lógica de negocio con Express.
+9. No mezclar lógica de negocio con los controllers/guards — todo en el Service.
 10. Ningún fork, ningún código por cliente. Todo por configuración.
 
 ---
