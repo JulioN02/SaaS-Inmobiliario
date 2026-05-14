@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsEnum, MaxLength, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PropertyType } from '@prisma/client';
 
@@ -38,4 +38,20 @@ export class CreatePropertyDto {
   @IsString()
   @MaxLength(500)
   description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Publicar en el sitio web público',
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isPublished?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'URL de imagen para mostrar en el sitio web',
+    example: 'https://ejemplo.com/propiedad.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }

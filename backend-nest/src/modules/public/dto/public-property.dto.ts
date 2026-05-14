@@ -16,6 +16,9 @@ export class PublicPropertyDto {
   @ApiPropertyOptional({ description: 'Descripción' })
   description?: string;
 
+  @ApiPropertyOptional({ description: 'URL de imagen' })
+  imageUrl?: string;
+
   @ApiProperty({ description: 'Cantidad de unidades' })
   unitCount: number;
 }

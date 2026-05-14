@@ -55,6 +55,7 @@ export function PropertyPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [isViewing, setIsViewing] = useState(false);
   const [filterType, setFilterType] = useState<PropertyType | undefined>(undefined);
   const [deleteConfirm, setDeleteConfirm] = useState<Property | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -80,12 +81,21 @@ export function PropertyPage() {
   // Abrir modal para crear nuevo propiedad
   const handleCreate = () => {
     setEditingProperty(null);
+    setIsViewing(false);
     setIsModalOpen(true);
   };
 
   // Abrir modal para editar propiedad existente
   const handleEdit = (property: Property) => {
     setEditingProperty(property);
+    setIsViewing(false);
+    setIsModalOpen(true);
+  };
+
+  // Ver detalle de propiedad
+  const handleViewDetail = (property: Property) => {
+    setEditingProperty(property);
+    setIsViewing(true);
     setIsModalOpen(true);
   };
 
@@ -93,6 +103,7 @@ export function PropertyPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProperty(null);
+    setIsViewing(false);
   };
 
   // Manejar cambio de página
@@ -135,13 +146,6 @@ export function PropertyPage() {
   // Cancelar eliminación
   const handleDeleteCancel = () => {
     setDeleteConfirm(null);
-  };
-
-  // Navegar al detalle
-  const handleViewDetail = (property: Property) => {
-    setSelectedProperty(property);
-    // En una implementación real, esto navegará a la página de detalle
-    // Por ahora mantenemos el estado y abrimos el modal de detalle
   };
 
   return (
@@ -251,7 +255,7 @@ export function PropertyPage() {
         </div>
       )}
 
-      {/* ── Modal de creación/edición ───────────────────────────────────── */}
+      {/* ── Modal de creación/edición/visualización ──────────────────────── */}
       {isModalOpen && (
         <PropertyDetailPage
           property={editingProperty}
@@ -261,6 +265,7 @@ export function PropertyPage() {
             const params: FindAllPropertiesParams = { page, limit, propertyType: filterType };
             fetchProperties(params);
           }}
+          viewOnly={isViewing}
         />
       )}
 

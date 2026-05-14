@@ -14,7 +14,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   role: UserRole | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, subdomain?: string) => Promise<void>;
   logout: () => void;
   error: string | null;
   clearError: () => void;

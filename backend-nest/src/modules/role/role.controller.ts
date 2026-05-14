@@ -20,7 +20,7 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Get()
-  @UseGuards(RbacGuard('roles', 'read'))
+  @UseGuards(RbacGuard('role', 'read'))
   @ApiOperation({ summary: 'Listar todos los roles con permisos' })
   @ApiResponse({
     status: 200,
@@ -32,7 +32,7 @@ export class RoleController {
   }
 
   @Get(':id')
-  @UseGuards(RbacGuard('roles', 'read'))
+  @UseGuards(RbacGuard('role', 'read'))
   @ApiOperation({ summary: 'Obtener un rol por ID con permisos' })
   @ApiParam({ name: 'id', description: 'ID del rol' })
   @ApiResponse({
@@ -46,7 +46,7 @@ export class RoleController {
   }
 
   @Put(':id/permissions')
-  @UseGuards(RbacGuard('roles', 'update'))
+  @UseGuards(RbacGuard('role', 'update'))
   @ApiOperation({ summary: 'Actualizar permisos de un rol' })
   @ApiParam({ name: 'id', description: 'ID del rol' })
   @ApiResponse({

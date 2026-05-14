@@ -20,6 +20,8 @@ export interface Property {
   address: string;
   propertyType: PropertyType;
   description?: string;
+  isPublished?: boolean;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
@@ -30,6 +32,8 @@ export interface CreatePropertyDto {
   address: string;
   propertyType: PropertyType;
   description?: string;
+  isPublished?: boolean;
+  imageUrl?: string;
 }
 
 export interface UpdatePropertyDto {
@@ -37,6 +41,8 @@ export interface UpdatePropertyDto {
   address?: string;
   propertyType?: PropertyType;
   description?: string;
+  isPublished?: boolean;
+  imageUrl?: string;
 }
 
 export interface FindAllPropertiesParams {
@@ -104,6 +110,8 @@ export interface Unit {
   floor: number;
   status: UnitStatus;
   monthlyFeeAmount?: number;
+  isPublished?: boolean;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
@@ -116,6 +124,8 @@ export interface CreateUnitDto {
   unitType: UnitType;
   floor: number;
   monthlyFeeAmount?: number;
+  isPublished?: boolean;
+  imageUrl?: string;
 }
 
 export interface UpdateUnitDto {
@@ -126,6 +136,8 @@ export interface UpdateUnitDto {
   floor?: number;
   status?: UnitStatus;
   monthlyFeeAmount?: number;
+  isPublished?: boolean;
+  imageUrl?: string;
 }
 
 export interface FindAllUnitsParams {

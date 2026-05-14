@@ -406,16 +406,34 @@ export function AnnouncementPage() {
                 { value: 'URGENT', label: 'Urgente' },
               ]}
             />
-              <FormField
-                label="Roles Destino (separados por coma)"
-                name="targetRoles"
-                value={formData.targetRoles.join(',')}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const roles = e.target.value.split(',').map((r: string) => r.trim()).filter((r: string) => r);
-                  handleFormChange('targetRoles', roles);
-                }}
-                placeholder="ADMIN_TENANT, ADMINISTRATIVA"
-              />
+              <div className={styles.field}>
+                <label className={styles.label}>Roles Destino</label>
+                <div className={styles.rolesCheckboxGroup}>
+                  {[
+                    { value: 'ADMIN_TENANT', label: 'Admin Tenant' },
+                    { value: 'ADMINISTRATIVA', label: 'Administrativa' },
+                    { value: 'PORTERIA', label: 'Portería' },
+                  ].map((role) => (
+                    <label key={role.value} className={styles.roleCheckbox}>
+                      <input
+                        type="checkbox"
+                        checked={formData.targetRoles.includes(role.value)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleFormChange('targetRoles', [...formData.targetRoles, role.value]);
+                          } else {
+                            handleFormChange('targetRoles', formData.targetRoles.filter((r) => r !== role.value));
+                          }
+                        }}
+                      />
+                      <span>{role.label}</span>
+                    </label>
+                  ))}
+                  {formData.targetRoles.length === 0 && (
+                    <span className={styles.rolesHint}>Visible para todos los roles</span>
+                  )}
+                </div>
+              </div>
           </div>
           <div className={styles.formRow}>
             <FormField

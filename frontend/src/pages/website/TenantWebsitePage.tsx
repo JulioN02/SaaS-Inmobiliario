@@ -160,25 +160,39 @@ export function TenantWebsitePage() {
             <div className={styles.propertiesGrid}>
               {properties.map((property) => (
                 <div key={property.id} className={styles.propertyCard}>
-                  <div className={styles.propertyCardHeader}>
-                    <span
-                      className={styles.propertyTypeBadge}
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      {property.propertyType.replace(/_/g, ' ')}
-                    </span>
-                    <span className={styles.unitCount}>
-                      {property.unitCount}{' '}
-                      {property.unitCount === 1 ? 'unidad' : 'unidades'}
-                    </span>
+                  {property.imageUrl && (
+                    <div className={styles.propertyImageContainer}>
+                      <img
+                        src={property.imageUrl}
+                        alt={property.name}
+                        className={styles.propertyImage}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div className={styles.propertyCardBody}>
+                    <div className={styles.propertyCardHeader}>
+                      <span
+                        className={styles.propertyTypeBadge}
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {property.propertyType.replace(/_/g, ' ')}
+                      </span>
+                      <span className={styles.unitCount}>
+                        {property.unitCount}{' '}
+                        {property.unitCount === 1 ? 'unidad' : 'unidades'}
+                      </span>
+                    </div>
+                    <h3 className={styles.propertyName}>{property.name}</h3>
+                    {property.address && (
+                      <p className={styles.propertyAddress}>{property.address}</p>
+                    )}
+                    {property.description && (
+                      <p className={styles.propertyDescription}>{property.description}</p>
+                    )}
                   </div>
-                  <h3 className={styles.propertyName}>{property.name}</h3>
-                  {property.address && (
-                    <p className={styles.propertyAddress}>{property.address}</p>
-                  )}
-                  {property.description && (
-                    <p className={styles.propertyDescription}>{property.description}</p>
-                  )}
                 </div>
               ))}
             </div>

@@ -23,7 +23,7 @@ import {
 @ApiTags('Visitantes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard, RbacGuard)
-@Controller('api/v1/visitors')
+@Controller('visitors')
 export class VisitorController {
   constructor(private readonly visitorService: VisitorService) {}
 

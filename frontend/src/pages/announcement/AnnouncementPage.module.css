@@ -342,6 +342,58 @@
   cursor: not-allowed;
 }
 
+/* Field overrides for roles checkboxes */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.rolesCheckboxGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.roleCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.roleCheckbox:hover {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.roleCheckbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3B82F6;
+  cursor: pointer;
+}
+
+.rolesHint {
+  font-size: 12px;
+  color: #94A3B8;
+  align-self: center;
+}
+
 /* Rich text indicator */
 .richTextNote {
   padding: 8px 12px;

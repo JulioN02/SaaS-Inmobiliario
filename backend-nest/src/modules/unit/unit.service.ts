@@ -156,6 +156,8 @@ export class UnitService {
     if (dto.floor !== undefined) data.floor = dto.floor;
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.monthlyFeeAmount !== undefined) data.monthlyFeeAmount = dto.monthlyFeeAmount;
+    if (dto.isPublished !== undefined) data.isPublished = dto.isPublished;
+    if (dto.imageUrl !== undefined) data.imageUrl = dto.imageUrl;
 
     const updated = await this.prisma.unit.update({
       where: { id },
@@ -310,6 +312,8 @@ export class UnitService {
       floor: true,
       status: true,
       monthlyFeeAmount: true,
+      isPublished: true,
+      imageUrl: true,
       createdAt: true,
       updatedAt: true,
       deletedAt: true,

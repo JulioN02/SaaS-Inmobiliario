@@ -21,7 +21,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, subdomain?: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
   initialize: () => void;
@@ -37,11 +37,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
 
   // Login: llama al backend y guarda la sesión
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, subdomain?: string) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await loginService(email, password);
+      const response = await loginService(email, password, subdomain);
 
       saveSession(response.accessToken, response.user);
 

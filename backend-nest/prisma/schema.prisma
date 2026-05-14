@@ -216,6 +216,8 @@ model Property {
   propertyType PropertyType
   address      String?      @db.VarChar(200)
   description  String?      @db.VarChar(500)
+  isPublished  Boolean      @default(false)
+  imageUrl     String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   deletedAt    DateTime?
@@ -225,7 +227,6 @@ model Property {
   units  Unit[]
 
   @@index([tenantId])
-  @@index([tenantId, deletedAt])
   @@map("properties")
 }
 
@@ -257,9 +258,11 @@ model Unit {
   floor            Int?
   status           UnitStatus @default(AVAILABLE)
   monthlyFeeAmount Decimal?   @db.Decimal(12, 2)
+  isPublished      Boolean    @default(false)
+  imageUrl         String?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
-  deletedAt        DateTime?
+  deletedAt        DateTime? 
 
   property        Property             @relation(fields: [propertyId], references: [id])
   tower           Tower?               @relation(fields: [towerId], references: [id])

@@ -33,6 +33,7 @@ export interface PublicProperty {
   address?: string;
   propertyType: string;
   description?: string;
+  imageUrl?: string;
   unitCount: number;
 }
 

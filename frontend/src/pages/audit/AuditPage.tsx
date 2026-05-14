@@ -7,7 +7,8 @@
 import { useEffect, useState } from 'react';
 import { useAuditStore } from '../../stores/auditStore';
 import { toast } from '../../stores/toastStore';
-import type { FindAllAuditParams } from '../../types';
+import type { AuditLog, FindAllAuditParams } from '../../types';
+import { Modal } from '../../components/Shared/Modal';
 import { RoleGuard } from '../../components/RoleGuard';
 import styles from './AuditPage.module.css';
 
@@ -53,6 +54,7 @@ export function AuditPage() {
   const [filterAction, setFilterAction] = useState<string | undefined>(undefined);
   const [filterStartDate, setFilterStartDate] = useState<string | undefined>(undefined);
   const [filterEndDate, setFilterEndDate] = useState<string | undefined>(undefined);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   // Cargar logs al montar y cuando cambian los filtros
   useEffect(() => {
@@ -115,6 +117,15 @@ export function AuditPage() {
   // Obtener label de acción
   const getActionLabel = (action: string) => {
     return ACTION_LABELS[action] || action;
+  };
+
+  // Obtener nombre del usuario desde userInfo
+  const getUserName = (log: AuditLog): string => {
+    if (log.userInfo?.firstName) {
+      return `${log.userInfo.firstName} ${log.userInfo.lastName ?? ''}`.trim();
+    }
+    if (log.userInfo?.email) return log.userInfo.email;
+    return log.userId.slice(0, 8) + '...';
   };
 
   // Obtener color según acción
@@ -212,11 +223,11 @@ export function AuditPage() {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id}>
+                  <tr key={log.id} className={styles.clickableRow} onClick={() => setSelectedLog(log)}>
                     <td className={styles.dateCell}>
                       {formatDateTime(log.timestamp)}
                     </td>
-                    <td>{log.userId}</td>
+                    <td>{getUserName(log)}</td>
                     <td>{getEntityLabel(log.entity)}</td>
                     <td>
                       <span className={`${styles.actionBadge} ${styles[getActionVariant(log.action)]}`}>
@@ -256,6 +267,69 @@ export function AuditPage() {
             </button>
           </div>
         )}
+        {/* ── Modal de detalle ──────────────────────────────────────────── */}
+        <Modal
+          isOpen={!!selectedLog}
+          title="Detalle de Auditoría"
+          onClose={() => setSelectedLog(null)}
+          size="lg"
+        >
+          {selectedLog && (
+            <div className={styles.detailContent}>
+              <div className={styles.detailGrid}>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>Fecha</span>
+                  <span>{formatDateTime(selectedLog.timestamp)}</span>
+                </div>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>Usuario</span>
+                  <span>{getUserName(selectedLog)}</span>
+                </div>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>Email</span>
+                  <span>{selectedLog.userInfo?.email || '—'}</span>
+                </div>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>Entidad</span>
+                  <span>{getEntityLabel(selectedLog.entity)}</span>
+                </div>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>Acción</span>
+                  <span>
+                    <span className={`${styles.actionBadge} ${styles[getActionVariant(selectedLog.action)]}`}>
+                      {getActionLabel(selectedLog.action)}
+                    </span>
+                  </span>
+                </div>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>ID Registro</span>
+                  <code>{selectedLog.entityId}</code>
+                </div>
+                <div className={styles.detailField}>
+                  <span className={styles.detailLabel}>IP</span>
+                  <span>{selectedLog.ipAddress || '—'}</span>
+                </div>
+              </div>
+
+              {selectedLog.snapshot && (
+                <>
+                  <h4 style={{ margin: '16px 0 8px', fontSize: '14px', color: '#374151' }}>
+                    Snapshot de datos
+                  </h4>
+                  <pre className={styles.snapshotPre}>
+                    {JSON.stringify(selectedLog.snapshot, null, 2)}
+                  </pre>
+                </>
+              )}
+
+              {!selectedLog.snapshot && (
+                <p style={{ color: '#94A3B8', fontSize: '14px', marginTop: '16px' }}>
+                  No hay snapshot disponible para este registro.
+                </p>
+              )}
+            </div>
+          )}
+        </Modal>
       </div>
     </RoleGuard>
   );

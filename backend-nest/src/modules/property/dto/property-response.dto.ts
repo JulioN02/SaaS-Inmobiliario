@@ -20,6 +20,12 @@ export class PropertyResponseDto {
   @ApiPropertyOptional({ description: 'Descripción de la propiedad' })
   description: string | null;
 
+  @ApiPropertyOptional({ description: 'Publicado en sitio web', example: false })
+  isPublished: boolean;
+
+  @ApiPropertyOptional({ description: 'URL de imagen para el sitio web' })
+  imageUrl: string | null;
+
   @ApiProperty({ description: 'Fecha de creación' })
   createdAt: Date;
 

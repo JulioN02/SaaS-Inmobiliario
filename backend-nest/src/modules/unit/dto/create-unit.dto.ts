@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsInt, IsUUID, IsOptional, IsNumber, MaxLength, Min } from 'class-validator';
+import { IsString, IsEnum, IsInt, IsUUID, IsOptional, IsNumber, IsBoolean, MaxLength, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UnitType } from '@prisma/client';
 
@@ -54,4 +54,20 @@ export class CreateUnitDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   monthlyFeeAmount?: number;
+
+  @ApiPropertyOptional({
+    description: 'Publicar en el sitio web público',
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isPublished?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'URL de imagen para mostrar en el sitio web',
+    example: 'https://ejemplo.com/unidad.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }

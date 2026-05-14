@@ -28,10 +28,13 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Adjuntar tenantId para resolución en el backend
-    const tenantId = localStorage.getItem('saas_tenant_id');
-    if (tenantId) {
-      config.headers['x-tenant-id'] = tenantId;
+    // Adjuntar tenantId solo si NO se especificó ya en el request
+    // (loginService lo asigna explícitamente, no queremos pisarlo)
+    if (!config.headers['x-tenant-id']) {
+      const tenantId = localStorage.getItem('saas_tenant_id');
+      if (tenantId) {
+        config.headers['x-tenant-id'] = tenantId;
+      }
     }
 
     return config;

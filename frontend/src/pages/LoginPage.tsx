@@ -23,6 +23,9 @@ const loginSchema = z.object({
     .string()
     .min(1, 'La contraseña es requerida')
     .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  subdomain: z
+    .string()
+    .min(1, 'El subdominio del tenant es requerido'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -43,6 +46,7 @@ export function LoginPage() {
     defaultValues: {
       email: '',
       password: '',
+      subdomain: '',
     },
   });
 
@@ -50,7 +54,7 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(data.email, data.password);
+      await login(data.email, data.password, data.subdomain);
       toast.success('Bienvenido');
       navigate('/dashboard');
     } catch (err) {
@@ -116,6 +120,22 @@ export function LoginPage() {
             )}
           </div>
 
+          <div className={styles.field}>
+            <label htmlFor="subdomain" className={styles.label}>
+              Subdominio del Tenant
+            </label>
+            <input
+              id="subdomain"
+              type="text"
+              className={`${styles.input} ${errors.subdomain ? styles.inputError : ''}`}
+              placeholder="platform, losalamos, etc."
+              {...register('subdomain')}
+            />
+            {errors.subdomain && (
+              <span className={styles.error}>{errors.subdomain.message}</span>
+            )}
+          </div>
+
           <button
             type="submit"
             className={styles.submitButton}
@@ -123,6 +143,14 @@ export function LoginPage() {
           >
             {isSubmitting ? 'Ingresando...' : 'Ingresar'}
           </button>
+
+          <div className={styles.tenantHelp}>
+            <p className={styles.helpTitle}>Credenciales de prueba:</p>
+            <p className={styles.helpItem}><strong>platform</strong> — admin@platform.com / Admin_Pass_2026!</p>
+            <p className={styles.helpItem}><strong>losalamos</strong> — admin@losalamos.com / Demo_2026!</p>
+            <p className={styles.helpItem}><strong>losalamos</strong> — operativo@losalamos.com / Demo_2026!</p>
+            <p className={styles.helpItem}><strong>losalamos</strong> — portero@losalamos.com / Demo_2026!</p>
+          </div>
         </form>
 
         {/* ── Footer ────────────────────────────────────────────────────── */}

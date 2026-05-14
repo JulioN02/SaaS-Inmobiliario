@@ -209,6 +209,11 @@ export interface AuditLog {
   id: string;
   tenantId: string;
   userId: string;
+  userInfo?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
   entity: string;
   entityId: string;
   action: string;

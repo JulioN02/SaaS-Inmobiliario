@@ -23,7 +23,7 @@ import {
 @ApiTags('Mantenimiento')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard, RbacGuard)
-@Controller('api/v1/maintenance')
+@Controller('maintenance')
 export class MaintenanceController {
   constructor(private readonly maintenanceService: MaintenanceService) {}
 

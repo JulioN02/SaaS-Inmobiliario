@@ -31,9 +31,15 @@ function resolveTenantId(): string {
 }
 
 // ── Login ───────────────────────────────────────────────────────────────────
+// subdomain opcional: si se pasa, se usa como x-tenant-id.
+// Si no, se resuelve automáticamente desde el subdominio del navegador.
 
-export async function loginService(email: string, password: string): Promise<LoginResponse> {
-  const tenantId = resolveTenantId();
+export async function loginService(
+  email: string,
+  password: string,
+  subdomain?: string,
+): Promise<LoginResponse> {
+  const tenantId = subdomain || resolveTenantId();
   const response = await api.post<LoginResponse>('/auth/login',
     { email, password },
     { headers: { 'x-tenant-id': tenantId } }

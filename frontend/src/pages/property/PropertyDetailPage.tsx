@@ -20,6 +20,8 @@ const createPropertySchema = z.object({
   address: z.string().max(200, 'Máximo 200 caracteres').optional(),
   propertyType: propertyTypeEnum,
   description: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  isPublished: z.boolean().optional(),
+  imageUrl: z.string().max(500, 'Máximo 500 caracteres').optional(),
 });
 
 const updatePropertySchema = z.object({
@@ -27,6 +29,8 @@ const updatePropertySchema = z.object({
   address: z.string().max(200, 'Máximo 200 caracteres').optional(),
   propertyType: propertyTypeEnum,
   description: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  isPublished: z.boolean().optional(),
+  imageUrl: z.string().max(500, 'Máximo 500 caracteres').optional(),
 });
 
 type CreateFormData = z.infer<typeof createPropertySchema>;
@@ -38,12 +42,13 @@ interface PropertyDetailPageProps {
   property: Property | null; // null = crear, objeto = editar
   onClose: () => void;
   onSuccess: () => void;
+  viewOnly?: boolean; // true = modo solo lectura
 }
 
 // ── Componente ──────────────────────────────────────────────────────────────
 
-export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDetailPageProps) {
-  const isEdit = !!property;
+export function PropertyDetailPage({ property, onClose, onSuccess, viewOnly }: PropertyDetailPageProps) {
+  const isEdit = !!property && !viewOnly;
   const { createProperty, updateProperty, loading } = usePropertyStore();
 
   // Configurar formulario según modo
@@ -60,12 +65,16 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
           address: property.address ?? '',
           propertyType: property.propertyType,
           description: property.description ?? '',
+          isPublished: property.isPublished ?? false,
+          imageUrl: property.imageUrl ?? '',
         }
       : {
           name: '',
           address: '',
           propertyType: 'CONJUNTO' as const,
           description: '',
+          isPublished: false,
+          imageUrl: '',
         },
   });
 
@@ -77,6 +86,8 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
         address: property.address ?? '',
         propertyType: property.propertyType,
         description: property.description ?? '',
+        isPublished: property.isPublished ?? false,
+        imageUrl: property.imageUrl ?? '',
       });
     }
   }, [property, reset]);
@@ -90,6 +101,8 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
           address: data.address || '',
           propertyType: data.propertyType,
           description: data.description || '',
+          isPublished: data.isPublished,
+          imageUrl: data.imageUrl || undefined,
         };
         await updateProperty(property.id, dto);
         onSuccess();
@@ -99,6 +112,8 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
           address: data.address || '',
           propertyType: data.propertyType,
           description: data.description || '',
+          isPublished: data.isPublished,
+          imageUrl: data.imageUrl || undefined,
         };
         await createProperty(dto);
         onSuccess();
@@ -114,7 +129,7 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className={styles.header}>
           <h2 className={styles.title}>
-            {isEdit ? 'Editar Propiedad' : 'Nueva Propiedad'}
+            {viewOnly ? 'Ver Propiedad' : isEdit ? 'Editar Propiedad' : 'Nueva Propiedad'}
           </h2>
           <button className={styles.closeButton} onClick={onClose}>
             ✕
@@ -133,6 +148,7 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
               type="text"
               className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
               placeholder="Nombre de la propiedad"
+              disabled={viewOnly}
               {...register('name')}
             />
             {errors.name && (
@@ -148,6 +164,7 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
             <select
               id="propertyType"
               className={`${styles.input} ${errors.propertyType ? styles.inputError : ''}`}
+              disabled={viewOnly}
               {...register('propertyType')}
             >
               <option value="CONJUNTO">Conjunto</option>
@@ -170,6 +187,7 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
               type="text"
               className={styles.input}
               placeholder="Dirección de la propiedad"
+              disabled={viewOnly}
               {...register('address')}
             />
             {errors.address && (
@@ -187,12 +205,49 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
               className={styles.textarea}
               placeholder="Descripción opcional"
               rows={3}
+              disabled={viewOnly}
               {...register('description')}
             />
             {errors.description && (
               <span className={styles.error}>{errors.description.message}</span>
             )}
           </div>
+
+          {/* Publicar en web */}
+          {!viewOnly && (
+            <div className={styles.field}>
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  {...register('isPublished')}
+                />
+                <span>Publicar en el sitio web</span>
+              </label>
+              <span className={styles.fieldHint}>
+                Si activas esta opción, la propiedad aparecerá en el sitio web público.
+              </span>
+            </div>
+          )}
+
+          {/* URL de imagen */}
+          {!viewOnly && (
+            <div className={styles.field}>
+              <label htmlFor="imageUrl" className={styles.label}>
+                URL de imagen para el sitio web
+              </label>
+              <input
+                id="imageUrl"
+                type="url"
+                className={styles.input}
+                placeholder="https://ejemplo.com/imagen.jpg"
+                disabled={viewOnly}
+                {...register('imageUrl')}
+              />
+              {errors.imageUrl && (
+                <span className={styles.error}>{errors.imageUrl.message}</span>
+              )}
+            </div>
+          )}
 
           {/* ── Acciones ──────────────────────────────────────────────────── */}
           <div className={styles.actions}>
@@ -202,19 +257,21 @@ export function PropertyDetailPage({ property, onClose, onSuccess }: PropertyDet
               onClick={onClose}
               disabled={loading}
             >
-              Cancelar
+              {viewOnly ? 'Cerrar' : 'Cancelar'}
             </button>
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={loading}
-            >
-              {loading
-                ? 'Guardando...'
-                : isEdit
-                ? 'Actualizar'
-                : 'Crear'}
-            </button>
+            {!viewOnly && (
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={loading}
+              >
+                {loading
+                  ? 'Guardando...'
+                  : isEdit
+                  ? 'Actualizar'
+                  : 'Crear'}
+              </button>
+            )}
           </div>
         </form>
       </div>

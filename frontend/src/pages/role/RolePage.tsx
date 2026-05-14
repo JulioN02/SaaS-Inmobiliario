@@ -103,7 +103,8 @@ export function RolePage() {
 
   // Contar permisos totales de un rol
   const countPermissions = (permissions: Role['permissions']) => {
-    return permissions.reduce((acc, p) => acc + p.actions.length, 0);
+    if (!permissions || permissions.length === 0) return 0;
+    return permissions.reduce((acc, p) => acc + (p.actions?.length || 0), 0);
   };
 
   // Formatear fecha
@@ -130,9 +131,9 @@ export function RolePage() {
 
       {/* ── Tabla ───────────────────────────────────────────────────────── */}
       <div className={styles.tableContainer}>
-        {loading && roles.length === 0 ? (
+        {loading && (!roles || roles.length === 0) ? (
           <div className={styles.loading}>Cargando roles...</div>
-        ) : roles.length === 0 ? (
+        ) : !roles || roles.length === 0 ? (
           <div className={styles.empty}>No hay roles registrados</div>
         ) : (
           <table className={styles.table}>

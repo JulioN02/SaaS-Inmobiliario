@@ -106,15 +106,15 @@ export class PublicController {
     }
 
     const properties = await this.prisma.property.findMany({
-      where: { tenantId: tenant.id, deletedAt: null },
+      where: { tenantId: tenant.id, deletedAt: null, isPublished: true },
       orderBy: { name: 'asc' },
     });
 
-    // Get unit count for each property
+    // Get unit count for each property (only published units)
     const result: PublicPropertyDto[] = [];
     for (const property of properties) {
       const unitCount = await this.prisma.unit.count({
-        where: { propertyId: property.id, deletedAt: null },
+        where: { propertyId: property.id, deletedAt: null, isPublished: true },
       });
 
       result.push({
@@ -123,6 +123,7 @@ export class PublicController {
         address: property.address ?? undefined,
         propertyType: property.propertyType,
         description: property.description ?? undefined,
+        imageUrl: property.imageUrl ?? undefined,
         unitCount,
       });
     }

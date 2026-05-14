@@ -33,7 +33,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  @UseGuards(RbacGuard('users', 'read'))
+  @UseGuards(RbacGuard('user', 'read'))
   @ApiOperation({ summary: 'Listar usuarios del tenant (paginado, filtrado)' })
   @ApiResponse({
     status: 200,
@@ -48,7 +48,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(RbacGuard('users', 'read'))
+  @UseGuards(RbacGuard('user', 'read'))
   @ApiOperation({ summary: 'Obtener un usuario por ID' })
   @ApiParam({ name: 'id', description: 'ID del usuario' })
   @ApiResponse({
@@ -65,7 +65,7 @@ export class UserController {
   }
 
   @Post()
-  @UseGuards(RbacGuard('users', 'create'))
+  @UseGuards(RbacGuard('user', 'create'))
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
   @ApiResponse({
     status: 201,
@@ -88,7 +88,7 @@ export class UserController {
   }
 
   @Patch(':id')
-  @UseGuards(RbacGuard('users', 'update'))
+  @UseGuards(RbacGuard('user', 'update'))
   @ApiOperation({ summary: 'Actualizar un usuario' })
   @ApiParam({ name: 'id', description: 'ID del usuario' })
   @ApiResponse({

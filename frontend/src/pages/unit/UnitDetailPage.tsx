@@ -260,7 +260,7 @@ export function UnitDetailPage({ unit, onClose, onSuccess }: UnitDetailPageProps
               placeholder="1"
               min="0"
               max="100"
-              {...register('floor')}
+              {...register('floor', { valueAsNumber: true })}
             />
             {errors.floor && (
               <span className={styles.error}>{errors.floor.message}</span>
@@ -296,7 +296,7 @@ export function UnitDetailPage({ unit, onClose, onSuccess }: UnitDetailPageProps
               className={styles.input}
               placeholder="0"
               min="0"
-              {...register('monthlyFeeAmount')}
+              {...register('monthlyFeeAmount', { valueAsNumber: true })}
             />
             {errors.monthlyFeeAmount && (
               <span className={styles.error}>{errors.monthlyFeeAmount.message}</span>

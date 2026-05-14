@@ -27,7 +27,7 @@ import {
 @ApiTags('Ocupaciones')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard, RbacGuard)
-@Controller('api/v1/occupancies')
+@Controller('occupancies')
 export class OccupancyController {
   constructor(private readonly occupancyService: OccupancyService) {}
 

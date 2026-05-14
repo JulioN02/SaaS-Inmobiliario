@@ -26,7 +26,7 @@ import {
 @ApiTags('Residentes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard, RbacGuard)
-@Controller('api/v1/residents')
+@Controller('residents')
 export class ResidentController {
   constructor(private readonly residentService: ResidentService) {}
 

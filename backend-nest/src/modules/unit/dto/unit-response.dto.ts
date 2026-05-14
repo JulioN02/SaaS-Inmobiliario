@@ -29,6 +29,12 @@ export class UnitResponseDto {
   @ApiPropertyOptional({ description: 'Monto de cuota mensual' })
   monthlyFeeAmount: number | null;
 
+  @ApiPropertyOptional({ description: 'Publicado en sitio web', example: false })
+  isPublished: boolean;
+
+  @ApiPropertyOptional({ description: 'URL de imagen para el sitio web' })
+  imageUrl: string | null;
+
   @ApiProperty({ description: 'Fecha de creación' })
   createdAt: Date;
 

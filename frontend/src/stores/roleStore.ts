@@ -21,6 +21,35 @@ import {
   assignPermissions,
 } from '../services/role';
 
+// ── Normalizar rol del backend (rol + permisos) al formato del frontend ──
+
+function normalizeRole(role: any): Role {
+  // Si ya está en formato frontend, devolver tal cual
+  if (role.permissions && role.permissions.length > 0 && role.permissions[0]?.actions) {
+    return role as Role;
+  }
+  // Convertir de backend: {roleId, permissionId, permission:{resource, action}}[]
+  // a frontend: {resource, actions[]}[]
+  const permMap = new Map<string, string[]>();
+  for (const rp of role.permissions || []) {
+    const p = rp.permission || rp;
+    const res = p.resource;
+    const act = p.action;
+    if (!permMap.has(res)) permMap.set(res, []);
+    const arr = permMap.get(res)!;
+    if (act && !arr.includes(act)) arr.push(act);
+  }
+  const permissions: Permission[] = [];
+  for (const [resource, actions] of permMap) {
+    permissions.push({ resource, actions });
+  }
+  return { ...role, permissions };
+}
+
+function normalizeRoles(roles: any[]): Role[] {
+  return roles.map(normalizeRole);
+}
+
 // ── Estado y acciones ─────────────────────────────────────────────────────
 
 interface RoleState {
@@ -60,15 +89,31 @@ export const useRoleStore = create<RoleState>((set) => ({
   fetchRoles: async (params?: FindAllRolesParams) => {
     set({ loading: true, error: null });
     try {
-      const result: PaginatedRoles = await findAllRoles(params);
-      set({
-        roles: result.data,
-        total: result.total,
-        page: result.page,
-        totalPages: result.totalPages,
-        limit: result.limit,
-        loading: false,
-      });
+      const result = await findAllRoles(params);
+      
+      // El backend puede devolver array plano o paginado
+      if (Array.isArray(result)) {
+        const roles = normalizeRoles(result);
+        set({
+          roles,
+          total: roles.length,
+          page: 1,
+          totalPages: 1,
+          limit: roles.length,
+          loading: false,
+        });
+      } else {
+        const paginated = result as any;
+        const data = normalizeRoles(paginated.data ?? []);
+        set({
+          roles: data,
+          total: paginated.total ?? data.length,
+          page: paginated.page ?? 1,
+          totalPages: paginated.totalPages ?? 1,
+          limit: paginated.limit ?? data.length,
+          loading: false,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al obtener roles';
       set({ error: message, loading: false });
@@ -80,7 +125,7 @@ export const useRoleStore = create<RoleState>((set) => ({
     set({ loading: true, error: null });
     try {
       const role = await findRoleById(id);
-      set({ selectedRole: role, loading: false });
+      set({ selectedRole: normalizeRole(role), loading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al obtener rol';
       set({ error: message, loading: false });
