@@ -26,6 +26,9 @@ export class OccupancyResponseDto {
   @ApiPropertyOptional({ description: 'Notas' })
   notes: string | null;
 
+  @ApiPropertyOptional({ description: 'Documentos adjuntos (JSON array)' })
+  documents: any | null;
+
   @ApiProperty({ description: 'Fecha de creación' })
   createdAt: Date;
 

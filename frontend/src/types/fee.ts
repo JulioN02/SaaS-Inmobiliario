@@ -20,8 +20,10 @@ export interface Fee {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
-  unitNumber?: string;
-  towerName?: string;
+  unitIdentifier?: string;
+  unitTowerName?: string;
+  propertyName?: string;
+  monthlyFeeAmount?: number;
 }
 
 export interface CreateFeeDto {

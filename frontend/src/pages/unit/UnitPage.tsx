@@ -50,6 +50,7 @@ export function UnitPage() {
     limit,
     fetchUnits,
     deleteUnit,
+    updateUnit,
     clearError,
   } = useUnitStore();
 
@@ -157,17 +158,38 @@ export function UnitPage() {
     setDeleteConfirm(null);
   };
 
+  // Toggle publicar/ocultar unidad en sitio web
+  const [togglingPublish, setTogglingPublish] = useState<string | null>(null);
+
+  const handleTogglePublish = async (unit: Unit) => {
+    setTogglingPublish(unit.id);
+    try {
+      await updateUnit(unit.id, { isPublished: !unit.isPublished } as any);
+      toast.success(
+        unit.isPublished
+          ? 'Unidad oculta del sitio web'
+          : 'Unidad publicada en el sitio web'
+      );
+      // Recargar lista
+      const params: FindAllUnitsParams = {
+        page,
+        limit,
+        propertyId: filterProperty || undefined,
+        towerId: filterTower || undefined,
+        status: filterStatus || undefined,
+      };
+      fetchUnits(params);
+    } catch (err) {
+      toast.error('Error al cambiar estado de publicación');
+    } finally {
+      setTogglingPublish(null);
+    }
+  };
+
   // Obtener nombre de propiedad por ID
   const getPropertyName = (propertyId: string): string => {
     const property = properties.find(p => p.id === propertyId);
     return property?.name || propertyId;
-  };
-
-  // Obtener nombre de torre por ID
-  const getTowerName = (towerId: string | undefined): string => {
-    if (!towerId) return '-';
-    const tower = towers.find(t => t.id === towerId);
-    return tower?.name || towerId;
   };
 
   return (
@@ -237,9 +259,9 @@ export function UnitPage() {
                 <th>Tipo</th>
                 <th>Piso</th>
                 <th>Propiedad</th>
-                <th>Torre</th>
                 <th>Estado</th>
                 <th>Mensualidad</th>
+                <th>Web</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -250,13 +272,29 @@ export function UnitPage() {
                   <td>{unitTypeLabels[unit.unitType]}</td>
                   <td>{formatNumber(unit.floor)}</td>
                   <td>{getPropertyName(unit.propertyId)}</td>
-                  <td>{getTowerName(unit.towerId)}</td>
                   <td>
                     <StatusBadge variant={unitStatusVariant(unit.status)}>
                       {unit.status === 'AVAILABLE' ? 'Disponible' : unit.status === 'OCCUPIED' ? 'Ocupada' : 'Mantenimiento'}
                     </StatusBadge>
                   </td>
                   <td>{formatCurrency(unit.monthlyFeeAmount)}</td>
+                  <td>
+                    <button
+                      onClick={() => handleTogglePublish(unit)}
+                      style={{
+                        background: unit.isPublished ? '#D1FAE5' : '#F3F4F6',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '4px 8px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        color: unit.isPublished ? '#065F46' : '#6B7280',
+                      }}
+                      title={unit.isPublished ? 'Publicado en web' : 'No publicado'}
+                    >
+                      {unit.isPublished ? '🌐 Visible' : '⬜ Oculto'}
+                    </button>
+                  </td>
                   <td>
                     <div className={styles.rowActions}>
                       <button

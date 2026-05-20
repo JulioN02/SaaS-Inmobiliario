@@ -98,9 +98,23 @@ export function AuditPage() {
     setFilterEndDate(undefined);
   };
 
-  // Formatear fecha
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('es-CO', {
+  // Formatear fecha con manejo de timezone ISO
+  const formatDateTime = (dateString: string | null | undefined) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    // Si la fecha no tiene timezone explícito, asumir UTC y convertir a local
+    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
+      const utcDate = new Date(dateString + 'Z');
+      return utcDate.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }) + ' ' + utcDate.toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+    return date.toLocaleString('es-CO', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

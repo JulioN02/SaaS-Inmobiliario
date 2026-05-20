@@ -100,4 +100,10 @@ export class FeeResponseDto {
     example: 'Conjunto Residencial Example',
   })
   propertyName: string;
+
+  @ApiPropertyOptional({
+    description: 'Monto de cuota mensual de la unidad',
+    example: 150000.00,
+  })
+  monthlyFeeAmount?: number;
 }

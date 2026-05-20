@@ -310,6 +310,7 @@ model Occupancy {
   startDate  DateTime      @db.Date
   endDate    DateTime?     @db.Date
   notes      String?       @db.VarChar(500)
+  documents  Json?         @db.JsonB
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 

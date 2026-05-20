@@ -63,11 +63,11 @@ export class OccupancyController {
   @ApiResponse({ status: 409, description: 'El residente ya tiene ocupación activa en esta unidad' })
   async create(
     @TenantId() tenantId: string,
-    @User() user: { userId: string; ipAddress?: string },
+    @User() user: { id: string; ipAddress?: string },
     @Body() dto: CreateOccupancyDto,
   ) {
     return this.occupancyService.create(tenantId, dto, {
-      userId: user.userId,
+      userId: user.id,
       tenantId,
       ipAddress: user.ipAddress,
     });
@@ -82,11 +82,11 @@ export class OccupancyController {
   async close(
     @TenantId() tenantId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @User() user: { userId: string; ipAddress?: string },
+    @User() user: { id: string; ipAddress?: string },
     @Body() dto: CloseOccupancyDto,
   ) {
     return this.occupancyService.close(tenantId, id, dto, {
-      userId: user.userId,
+      userId: user.id,
       tenantId,
       ipAddress: user.ipAddress,
     });

@@ -128,7 +128,9 @@ export class OccupancyService {
         residentId: dto.residentId,
         type: dto.type as OccupancyType,
         startDate: new Date(dto.startDate),
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
         notes: dto.notes,
+        documents: dto.documents ? dto.documents as unknown as Prisma.InputJsonValue : Prisma.JsonNull,
       },
       select: this.occupancySelect(),
     });
@@ -222,8 +224,36 @@ export class OccupancyService {
       startDate: true,
       endDate: true,
       notes: true,
+      documents: true,
       createdAt: true,
       updatedAt: true,
+      unit: {
+        select: {
+          id: true,
+          identifier: true,
+          status: true,
+          property: {
+            select: {
+              name: true,
+            },
+          },
+          tower: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      resident: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          documentNumber: true,
+          email: true,
+          phone: true,
+        },
+      },
     };
   }
 }

@@ -70,4 +70,26 @@ export class MetricsController {
       requestorTenantId,
     );
   }
+
+  // ── Extended dashboard data ────────────────────────────────────────────────
+
+  @Get('tenant/:tenantId/maintenance-pending')
+  @ApiOperation({ summary: 'Obtener mantenimientos pendientes y en progreso' })
+  async getPendingMaintenance(@Param('tenantId') tenantId: string) {
+    return this.metricsService.getPendingMaintenance(tenantId);
+  }
+
+  @Get('tenant/:tenantId/upcoming-fees')
+  @ApiOperation({ summary: 'Obtener cuotas próximas a vencer' })
+  async getUpcomingFees(
+    @Param('tenantId') tenantId: string,
+  ) {
+    return this.metricsService.getUpcomingFees(tenantId);
+  }
+
+  @Get('tenant/:tenantId/active-announcements')
+  @ApiOperation({ summary: 'Obtener anuncios activos' })
+  async getActiveAnnouncements(@Param('tenantId') tenantId: string) {
+    return this.metricsService.getActiveAnnouncements(tenantId);
+  }
 }

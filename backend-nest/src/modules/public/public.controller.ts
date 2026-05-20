@@ -9,6 +9,49 @@ import { PublicPropertyDto } from './dto';
 export class PublicController {
   constructor(private prisma: PrismaService) {}
 
+  @Get(':subdomain/units')
+  @ApiOperation({ summary: 'Obtener unidades publicadas de un tenant para el sitio web' })
+  @ApiParam({ name: 'subdomain', description: 'Subdominio del tenant' })
+  async getPublishedUnits(@Param('subdomain') subdomain: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { subdomain, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant no encontrado');
+    }
+
+    const units = await this.prisma.unit.findMany({
+      where: { tenantId: tenant.id, deletedAt: null, isPublished: true },
+      select: {
+        id: true,
+        identifier: true,
+        unitType: true,
+        floor: true,
+        monthlyFeeAmount: true,
+        imageUrl: true,
+        status: true,
+        property: { select: { name: true, address: true } },
+        tower: { select: { name: true } },
+      },
+      orderBy: [{ propertyId: 'asc' }, { identifier: 'asc' }],
+    });
+
+    return units.map(u => ({
+      id: u.id,
+      identifier: u.identifier,
+      unitType: u.unitType,
+      floor: u.floor,
+      monthlyFeeAmount: u.monthlyFeeAmount ? Number(u.monthlyFeeAmount) : null,
+      imageUrl: u.imageUrl,
+      status: u.status,
+      propertyName: u.property.name,
+      propertyAddress: u.property.address,
+      towerName: u.tower?.name || null,
+    }));
+  }
+
   @Get(':subdomain/website')
   @ApiOperation({ summary: 'Obtener configuración pública del website de un tenant' })
   @ApiParam({ name: 'subdomain', description: 'Subdominio del tenant' })

@@ -32,10 +32,12 @@ export class JwtAuthGuard implements CanActivate {
       // Adjuntar datos del usuario al request
       request['user'] = {
         id: decoded.sub,
+        client_id: decoded.client_id,
         clientId: decoded.client_id,
         role: decoded.role,
         plan: decoded.plan,
         permissions: decoded.permissions,
+        ipAddress: request.ip || request.headers['x-forwarded-for'] || 'unknown',
       };
 
       return true;

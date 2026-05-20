@@ -241,15 +241,39 @@ export interface PaginatedAuditLogs {
 
 // ── Métricas ────────────────────────────────────────────────────────────────
 
+export interface FeeMetrics {
+  pending: number;
+  paid: number;
+  partial: number;
+  overdue: number;
+  totalCollected: number;
+  collectionRate: number;
+}
+
+export interface VisitorMetrics {
+  today: number;
+  active: number;
+  thisWeek: number;
+}
+
+export interface MaintenanceMetrics {
+  pending: number;
+  inProgress: number;
+  resolved: number;
+  cancelled: number;
+}
+
 export interface Metrics {
   tenantsActive: number;
   tenantsSuspended: number;
+  totalProperties: number;
   totalUnits: number;
   totalUsers: number;
+  totalResidents: number;
+  occupancyRate: number;
   unitsByStatus: Record<UnitStatus, number>;
   tenantsByPlan: Record<TenantPlan, number>;
-  feesByStatus: Record<FeeStatus, number>;
-  feesDueSoon: number;
-  maintenanceOpen: number;
-  visitorsToday: number;
+  fees: FeeMetrics;
+  visitors: VisitorMetrics;
+  maintenance: MaintenanceMetrics;
 }

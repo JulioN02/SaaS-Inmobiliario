@@ -75,14 +75,37 @@ export function WebsitePage() {
             Personaliza cómo se ve tu sitio web institucional
           </p>
           {subdomain && (
-            <a
-              href={`/public/${subdomain}`}
-              className={styles.previewButton}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Vista Previa
-            </a>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <a
+                href={`${window.location.origin}/public/${subdomain}`}
+                className={styles.previewButton}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Vista previa desde el frontend"
+              >
+                👁️ Vista Previa
+              </a>
+              <a
+                href={`http://localhost:3000/api/v1/public/${subdomain}/website`}
+                className={styles.previewButton}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Datos del website desde la API"
+                style={{ background: '#f0f9ff', color: '#0369a1' }}
+              >
+                🌐 Abrir Sitio Web
+              </a>
+              <a
+                href={`http://localhost:3000/api/v1/public/${subdomain}/units`}
+                className={styles.previewButton}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Unidades publicadas"
+                style={{ background: '#ECFDF5', color: '#065F46' }}
+              >
+                🏠 Ver Unidades Publicadas
+              </a>
+            </div>
           )}
         </div>
       </div>

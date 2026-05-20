@@ -156,26 +156,57 @@ export function OccupancyPage() {
             <thead>
               <tr>
                 <th>Unidad</th>
+                <th>Propiedad</th>
                 <th>Residente</th>
+                <th>Documento</th>
                 <th>Tipo</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
+                <th>Duración</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {occupancies.map((occupancy) => (
+              {occupancies.map((occupancy) => {
+                const startDate = new Date(occupancy.startDate);
+                const endDate = occupancy.endDate ? new Date(occupancy.endDate) : null;
+                const now = new Date();
+                const durationMs = (endDate || now).getTime() - startDate.getTime();
+                const durationMonths = Math.round(durationMs / (1000 * 60 * 60 * 24 * 30));
+                const towerInfo = occupancy.unit?.tower?.name ? ` (${occupancy.unit.tower.name})` : '';
+                const propertyName = occupancy.unit?.property?.name || '—';
+
+                return (
                 <tr key={occupancy.id}>
-                  <td>{occupancy.unit?.identifier || '—'}</td>
+                  <td>
+                    <strong>{occupancy.unit?.identifier || '—'}</strong>
+                    <br />
+                    <small style={{ color: '#6b7280' }}>{propertyName}{towerInfo}</small>
+                  </td>
+                  <td>{propertyName}</td>
                   <td>
                     {occupancy.resident
                       ? `${occupancy.resident.firstName} ${occupancy.resident.lastName}`
                       : '—'}
                   </td>
-                  <td>{formatOccupancyType(occupancy.type)}</td>
+                  <td>
+                    {occupancy.resident?.documentNumber || '—'}
+                  </td>
+                  <td>
+                    <span className={`${styles.typeBadge} ${occupancy.type === 'OWNER' ? styles.typeOwner : styles.typeTenant}`}>
+                      {formatOccupancyType(occupancy.type)}
+                    </span>
+                  </td>
                   <td>{formatDate(occupancy.startDate)}</td>
                   <td>{formatDate(occupancy.endDate)}</td>
+                  <td>
+                    <span style={{ color: '#6b7280', fontSize: '13px' }}>
+                      {durationMonths >= 12
+                        ? `${Math.floor(durationMonths / 12)} año(s)`
+                        : `${durationMonths} mes(es)`}
+                    </span>
+                  </td>
                   <td>
                     <span
                       className={`${styles.statusBadge} ${
@@ -189,7 +220,7 @@ export function OccupancyPage() {
                   </td>
                   <td>
                     <div className={styles.rowActions}>
-                      {isOccupancyActive(occupancy) && (
+                      {isOccupancyActive(occupancy) ? (
                         <button
                           className={styles.closeButton}
                           onClick={() => handleCloseOccupancy(occupancy)}
@@ -197,11 +228,13 @@ export function OccupancyPage() {
                         >
                           🔒
                         </button>
+                      ) : (
+                        <span className={styles.closedLabel}>Finalizada</span>
                       )}
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         )}

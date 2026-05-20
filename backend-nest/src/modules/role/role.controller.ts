@@ -2,13 +2,14 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Body,
   Param,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { RoleService } from './role.service';
-import { RoleResponseDto } from './dto';
+import { RoleResponseDto, RemoveUsersDto } from './dto';
 import { JwtAuthGuard, TenantGuard, RbacGuard } from '../../common/guards';
 import { User, TenantId } from '../../common/decorators';
 
@@ -63,6 +64,29 @@ export class RoleController {
     @User('ipAddress') ipAddress?: string,
   ) {
     return this.roleService.updatePermissions(id, permissionIds, {
+      userId,
+      tenantId,
+      ipAddress,
+    });
+  }
+
+  @Patch(':id/users/remove')
+  @UseGuards(RbacGuard('role', 'update'))
+  @ApiOperation({ summary: 'Remover usuarios de un rol (reasignación masiva)' })
+  @ApiParam({ name: 'id', description: 'ID del rol origen' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuarios removidos del rol',
+  })
+  @ApiResponse({ status: 404, description: 'Rol no encontrado' })
+  async removeUsers(
+    @Param('id') id: string,
+    @Body() dto: RemoveUsersDto,
+    @User('id') userId: string,
+    @TenantId() tenantId: string,
+    @User('ipAddress') ipAddress?: string,
+  ) {
+    return this.roleService.removeUsers(id, dto.userIds, dto.targetRoleId, {
       userId,
       tenantId,
       ipAddress,

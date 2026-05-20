@@ -285,6 +285,11 @@ const STATUS_COLUMNS: MaintenanceStatus[] = ['PENDING', 'IN_PROGRESS', 'RESOLVED
         }
       >
         <div>
+          {formError && (
+            <div style={{ color: '#dc2626', fontSize: '14px', marginBottom: '12px', padding: '8px 12px', background: '#FEF2F2', borderRadius: '6px' }}>
+              {formError}
+            </div>
+          )}
           <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 500 }}>
             {selectedRequest?.title}
           </h3>

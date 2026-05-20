@@ -14,7 +14,7 @@ describe('OccupancyController', () => {
   let service: jest.Mocked<OccupancyService>;
 
   const mockTenantId = 'tenant-123';
-  const mockUser = { userId: 'user-123', ipAddress: '127.0.0.1' };
+  const mockUser = { id: 'user-123', ipAddress: '127.0.0.1' };
   const mockOccupancy = {
     id: 'occupancy-1',
     tenantId: mockTenantId,
@@ -24,8 +24,24 @@ describe('OccupancyController', () => {
     startDate: new Date('2024-01-01'),
     endDate: null,
     notes: 'Test note',
+    documents: null,
     createdAt: new Date(),
     updatedAt: new Date(),
+    unit: {
+      id: 'unit-1',
+      identifier: '101',
+      status: 'OCCUPIED' as const,
+      property: { name: 'Conjunto Los Álamos' },
+      tower: null,
+    },
+    resident: {
+      id: 'resident-1',
+      firstName: 'Carlos',
+      lastName: 'Mendoza',
+      documentNumber: '1012345678',
+      email: 'carlos@email.com',
+      phone: '3001112233',
+    },
   };
 
   const mockPrismaService = {
@@ -124,7 +140,7 @@ describe('OccupancyController', () => {
 
       expect(result).toEqual(mockOccupancy);
       expect(service.create).toHaveBeenCalledWith(mockTenantId, createDto, {
-        userId: mockUser.userId,
+        userId: mockUser.id,
         tenantId: mockTenantId,
         ipAddress: mockUser.ipAddress,
       });
@@ -143,14 +159,19 @@ describe('OccupancyController', () => {
     const closeDto = { endDate: '2024-12-31' };
 
     it('should close an occupancy', async () => {
-      const closed = { ...mockOccupancy, endDate: new Date('2024-12-31') };
+      const closed = {
+        ...mockOccupancy,
+        endDate: new Date('2024-12-31'),
+        unit: mockOccupancy.unit,
+        resident: mockOccupancy.resident,
+      };
       service.close.mockResolvedValue(closed);
 
       const result = await controller.close(mockTenantId, 'occupancy-1', mockUser, closeDto as any);
 
       expect(result.endDate).toEqual(new Date('2024-12-31'));
       expect(service.close).toHaveBeenCalledWith(mockTenantId, 'occupancy-1', closeDto, {
-        userId: mockUser.userId,
+        userId: mockUser.id,
         tenantId: mockTenantId,
         ipAddress: mockUser.ipAddress,
       });

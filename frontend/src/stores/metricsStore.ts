@@ -3,10 +3,11 @@
    ============================================================================= */
 
 import { create } from 'zustand';
-import { getPlatformMetrics, getTenantMetrics, type MetricsResponse } from '../services/metrics';
+import { getPlatformMetrics, getTenantMetrics } from '../services/metrics';
+import type { Metrics } from '../types';
 
 interface MetricsState {
-  metrics: MetricsResponse | null;
+  metrics: Metrics | null;
   loading: boolean;
   error: string | null;
 

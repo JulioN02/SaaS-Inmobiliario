@@ -68,16 +68,6 @@ export function MetricsPage() {
     return labels[plan] || plan;
   };
 
-  // Obtener labels de estado de cuotas
-  const getFeeStatusLabel = (status: string): string => {
-    const labels: Record<string, string> = {
-      PENDING: 'Pendientes',
-      PAID: 'Pagadas',
-      PARCIAL: 'Parciales',
-    };
-    return labels[status] || status;
-  };
-
   return (
     <RoleGuard allowedRoles={['SUPER_ADMIN']}>
       <div className={styles.container}>
@@ -133,6 +123,12 @@ export function MetricsPage() {
                   icon="🚪"
                   variant="primary"
                 />
+                <MetricCard
+                  title="Tasa de Ocupación"
+                  value={`${metrics.occupancyRate}%`}
+                  icon="📊"
+                  variant="info"
+                />
                 {metrics.unitsByStatus &&
                   Object.entries(metrics.unitsByStatus).map(([status, count]) => (
                     <MetricCard
@@ -163,39 +159,115 @@ export function MetricsPage() {
                   variant="info"
                 />
                 <MetricCard
-                  title="Solicitudes de Mantenimiento Abiertas"
-                  value={metrics.maintenanceOpen}
-                  icon="🔧"
-                  variant="warning"
-                />
-                <MetricCard
-                  title="Visitantes Hoy"
-                  value={metrics.visitorsToday || 0}
-                  icon="🚶"
+                  title="Propiedades"
+                  value={metrics.totalProperties}
+                  icon="🏠"
                   variant="primary"
                 />
                 <MetricCard
-                  title="Cuotas Pendientes"
-                  value={metrics.feesDueSoon || 0}
-                  icon="💰"
-                  variant="danger"
+                  title="Residentes"
+                  value={metrics.totalResidents}
+                  icon="👨‍👩‍👧‍👧"
+                  variant="success"
                 />
               </div>
             </section>
 
-            {metrics.feesByStatus && Object.keys(metrics.feesByStatus).length > 0 && (
+            {/* ── Métricas de Cuotas ────────────────────────────────────────── */}
+            {metrics.fees && (
               <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Estado de Cuotas</h2>
+                <h2 className={styles.sectionTitle}>Cuotas</h2>
                 <div className={styles.grid}>
-                  {Object.entries(metrics.feesByStatus).map(([status, count]) => (
-                    <MetricCard
-                      key={status}
-                      title={getFeeStatusLabel(status)}
-                      value={count}
-                      icon={status === 'PAID' ? '✅' : status === 'PENDING' ? '⏳' : '📝'}
-                      variant={status === 'PAID' ? 'success' : status === 'PENDING' ? 'warning' : 'info'}
-                    />
-                  ))}
+                  <MetricCard
+                    title="Pagadas"
+                    value={metrics.fees.paid}
+                    icon="✅"
+                    variant="success"
+                  />
+                  <MetricCard
+                    title="Pendientes"
+                    value={metrics.fees.pending}
+                    icon="⏳"
+                    variant="warning"
+                  />
+                  <MetricCard
+                    title="Vencidas"
+                    value={metrics.fees.overdue}
+                    icon="⚠️"
+                    variant="danger"
+                  />
+                  <MetricCard
+                    title="Tasa de Recaudo"
+                    value={`${metrics.fees.collectionRate}%`}
+                    icon="📈"
+                    variant="info"
+                  />
+                  <MetricCard
+                    title="Total Recaudado"
+                    value={`$${metrics.fees.totalCollected.toLocaleString('es-CO')}`}
+                    icon="💰"
+                    variant="primary"
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* ── Métricas de Mantenimiento ─────────────────────────────────── */}
+            {metrics.maintenance && (
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Mantenimiento</h2>
+                <div className={styles.grid}>
+                  <MetricCard
+                    title="Pendientes"
+                    value={metrics.maintenance.pending}
+                    icon="🕐"
+                    variant="warning"
+                  />
+                  <MetricCard
+                    title="En Progreso"
+                    value={metrics.maintenance.inProgress}
+                    icon="🔧"
+                    variant="info"
+                  />
+                  <MetricCard
+                    title="Resueltos"
+                    value={metrics.maintenance.resolved}
+                    icon="✅"
+                    variant="success"
+                  />
+                  <MetricCard
+                    title="Cancelados"
+                    value={metrics.maintenance.cancelled}
+                    icon="❌"
+                    variant="danger"
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* ── Métricas de Visitantes ────────────────────────────────────── */}
+            {metrics.visitors && (
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Visitantes</h2>
+                <div className={styles.grid}>
+                  <MetricCard
+                    title="Hoy"
+                    value={metrics.visitors.today}
+                    icon="🚶"
+                    variant="primary"
+                  />
+                  <MetricCard
+                    title="Activos"
+                    value={metrics.visitors.active}
+                    icon="🟡"
+                    variant="warning"
+                  />
+                  <MetricCard
+                    title="Esta Semana"
+                    value={metrics.visitors.thisWeek}
+                    icon="📅"
+                    variant="info"
+                  />
                 </div>
               </section>
             )}

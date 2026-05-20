@@ -70,6 +70,12 @@ export interface Occupancy {
   startDate: string;
   endDate?: string | null;
   notes?: string;
+  documents?: Array<{
+    name: string;
+    type: string;
+    url?: string;
+    notes?: string;
+  }>;
   createdAt: string;
   updatedAt: string;
   // Optional included relations
@@ -77,12 +83,18 @@ export interface Occupancy {
     id: string;
     identifier: string;
     status: string;
+    property?: { name: string };
+    tower?: { name: string };
+    propertyName?: string;
+    towerName?: string;
   };
   resident?: {
     id: string;
     firstName: string;
     lastName: string;
     documentNumber: string;
+    email?: string;
+    phone?: string;
   };
 }
 
@@ -91,6 +103,13 @@ export interface CreateOccupancyDto {
   residentId: string;
   type: OccupancyType;
   startDate: string;
+  endDate?: string;
+  documents?: Array<{
+    name: string;
+    type: string;
+    url?: string;
+    notes?: string;
+  }>;
   notes?: string;
 }
 

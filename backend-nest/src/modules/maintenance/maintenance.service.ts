@@ -109,12 +109,6 @@ export class MaintenanceService {
             },
           },
         },
-        createdByUser: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
       },
     });
 
@@ -253,12 +247,6 @@ export class MaintenanceService {
                 name: true,
               },
             },
-          },
-        },
-        createdByUser: {
-          select: {
-            firstName: true,
-            lastName: true,
           },
         },
       },

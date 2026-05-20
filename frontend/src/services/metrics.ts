@@ -3,26 +3,14 @@
    ============================================================================= */
 
 import { api } from './api';
+import type { Metrics } from '../types';
 
-export interface MetricsResponse {
-  tenantsActive: number;
-  tenantsSuspended: number;
-  totalUnits: number;
-  totalUsers: number;
-  unitsByStatus: Record<string, number>;
-  tenantsByPlan: Record<string, number>;
-  feesByStatus: Record<string, number>;
-  feesDueSoon: number;
-  maintenanceOpen: number;
-  visitorsToday: number;
-}
-
-export async function getPlatformMetrics(): Promise<MetricsResponse> {
-  const response = await api.get<MetricsResponse>('/metrics/platform');
+export async function getPlatformMetrics(): Promise<Metrics> {
+  const response = await api.get<Metrics>('/metrics/platform');
   return response.data;
 }
 
-export async function getTenantMetrics(tenantId: string): Promise<MetricsResponse> {
-  const response = await api.get<MetricsResponse>(`/metrics/tenant/${tenantId}`);
+export async function getTenantMetrics(tenantId: string): Promise<Metrics> {
+  const response = await api.get<Metrics>(`/metrics/tenant/${tenantId}`);
   return response.data;
 }

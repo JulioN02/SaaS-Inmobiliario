@@ -22,6 +22,7 @@ const createOccupancySchema = z.object({
   residentId: z.string().min(1, 'El residente es requerido'),
   type: z.enum(occupancyTypes, { message: 'El tipo es requerido' }),
   startDate: z.string().min(1, 'La fecha de inicio es requerida'),
+  endDate: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -57,6 +58,35 @@ export function OccupancyDetailPage({ onClose, onSuccess }: OccupancyDetailPageP
   const [units, setUnits] = useState<UnitOption[]>([]);
   const [residents, setResidents] = useState<ResidentOption[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
+
+  // ── Documentos ─────────────────────────────────────────────────────────────
+  const DOCUMENT_TYPES = [
+    { value: 'CONTRATO', label: 'Contrato' },
+    { value: 'LEGAL', label: 'Documento Legal' },
+    { value: 'IDENTIDAD', label: 'Identidad' },
+    { value: 'OTRO', label: 'Otro' },
+  ] as const;
+
+  const [documents, setDocuments] = useState<Array<{
+    name: string;
+    type: string;
+    url: string;
+    notes: string;
+  }>>([]);
+
+  const handleAddDocument = () => {
+    setDocuments(prev => [...prev, { name: '', type: 'CONTRATO', url: '', notes: '' }]);
+  };
+
+  const handleRemoveDocument = (index: number) => {
+    setDocuments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDocumentChange = (index: number, field: string, value: string) => {
+    setDocuments(prev => prev.map((doc, i) =>
+      i === index ? { ...doc, [field]: value } : doc
+    ));
+  };
 
   // Cargar unidades y residentes al montar
   useEffect(() => {
@@ -95,6 +125,7 @@ export function OccupancyDetailPage({ onClose, onSuccess }: OccupancyDetailPageP
       residentId: '',
       type: 'TENANT' as OccupancyType,
       startDate: new Date().toISOString().split('T')[0],
+      endDate: '',
       notes: '',
     },
   });
@@ -102,11 +133,19 @@ export function OccupancyDetailPage({ onClose, onSuccess }: OccupancyDetailPageP
   // Manejar envío
   const onSubmit = async (data: CreateFormData) => {
     try {
+      const docs = documents.filter(d => d.name.trim().length > 0);
       const dto: CreateOccupancyDto = {
         unitId: data.unitId,
         residentId: data.residentId,
         type: data.type,
         startDate: data.startDate,
+        endDate: data.endDate || undefined,
+        documents: docs.length > 0 ? docs.map(d => ({
+          name: d.name,
+          type: d.type,
+          url: d.url || undefined,
+          notes: d.notes || undefined,
+        })) : undefined,
         notes: data.notes || undefined,
       };
       await createOccupancy(dto);
@@ -210,6 +249,19 @@ export function OccupancyDetailPage({ onClose, onSuccess }: OccupancyDetailPageP
             )}
           </div>
 
+          {/* Fecha fin */}
+          <div className={styles.field}>
+            <label htmlFor="endDate" className={styles.label}>
+              Fecha de Finalización <small style={{ fontWeight: 400, color: '#94A3B8' }}>(opcional)</small>
+            </label>
+            <input
+              id="endDate"
+              type="date"
+              className={styles.input}
+              {...register('endDate')}
+            />
+          </div>
+
           {/* Notas */}
           <div className={styles.field}>
             <label htmlFor="notes" className={styles.label}>
@@ -222,6 +274,136 @@ export function OccupancyDetailPage({ onClose, onSuccess }: OccupancyDetailPageP
               rows={3}
               {...register('notes')}
             />
+          </div>
+
+          {/* ── Documentos ───────────────────────────────────────────────── */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Documentos <small style={{ fontWeight: 400, color: '#94A3B8' }}>(opcional)</small>
+            </label>
+            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '0 0 12px' }}>
+              Agrega documentos como contratos, documentación legal, identidad, etc.
+            </p>
+
+            {documents.map((doc, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: '12px',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '8px',
+                  marginBottom: '8px',
+                  background: '#FAFAFA',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '13px', color: '#374151' }}>Documento #{index + 1}</strong>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDocument(index)}
+                    style={{
+                      background: '#FEE2E2',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: '#DC2626',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                    }}
+                  >
+                    ✕ Eliminar
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#64748B', display: 'block', marginBottom: '4px' }}>Nombre *</label>
+                    <input
+                      type="text"
+                      value={doc.name}
+                      onChange={(e) => handleDocumentChange(index, 'name', e.target.value)}
+                      placeholder="Ej: Contrato de arrendamiento"
+                      style={{
+                        width: '100%',
+                        padding: '6px 10px',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', color: '#64748B', display: 'block', marginBottom: '4px' }}>Tipo</label>
+                    <select
+                      value={doc.type}
+                      onChange={(e) => handleDocumentChange(index, 'type', e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '6px 10px',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                      }}
+                    >
+                      {DOCUMENT_TYPES.map(t => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{ fontSize: '12px', color: '#64748B', display: 'block', marginBottom: '4px' }}>URL / Referencia</label>
+                  <input
+                    type="text"
+                    value={doc.url}
+                    onChange={(e) => handleDocumentChange(index, 'url', e.target.value)}
+                    placeholder="URL del documento (opcional)"
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748B', display: 'block', marginBottom: '4px' }}>Notas</label>
+                  <input
+                    type="text"
+                    value={doc.notes}
+                    onChange={(e) => handleDocumentChange(index, 'notes', e.target.value)}
+                    placeholder="Notas sobre el documento (opcional)"
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={handleAddDocument}
+              style={{
+                padding: '8px 16px',
+                background: '#F0F9FF',
+                border: '1px dashed #38BDF8',
+                borderRadius: '6px',
+                color: '#0284C7',
+                cursor: 'pointer',
+                fontSize: '13px',
+                width: '100%',
+              }}
+            >
+              + Agregar Documento
+            </button>
           </div>
 
           {/* ── Acciones ──────────────────────────────────────────────────── */}

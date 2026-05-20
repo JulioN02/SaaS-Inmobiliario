@@ -309,6 +309,7 @@ export class FeeService {
       unit: {
         select: {
           identifier: true,
+          monthlyFeeAmount: true,
           tower: {
             select: {
               name: true,
@@ -342,6 +343,7 @@ export class FeeService {
       unitIdentifier: fee.unit.identifier,
       unitTowerName: fee.unit.tower?.name,
       propertyName: fee.unit.property.name,
+      monthlyFeeAmount: fee.unit.monthlyFeeAmount ? Number(fee.unit.monthlyFeeAmount) : null,
     };
   }
 
