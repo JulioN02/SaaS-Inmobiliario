@@ -3,7 +3,7 @@
    Captura errores de renderizado en componentes hijos y muestra un fallback UI
    ============================================================================= */
 
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import styles from './ErrorBoundary.module.css';
 
 // ── Types ───────────────────────────────────────────────────────────────────

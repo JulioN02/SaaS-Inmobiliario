@@ -110,7 +110,7 @@ export function FeePage() {
 
   // Recurrence state
   const [recurrence, setRecurrence] = useState<'MONTHLY' | 'QUARTERLY' | 'SEMESTERLY' | 'YEARLY' | 'EXTRAORDINARY'>('MONTHLY');
-  const [manualAmount, setManualAmount] = useState('');
+
 
   // Recurrence month multipliers
   const RECURRENCE_MONTHS: Record<string, number> = {
@@ -121,13 +121,13 @@ export function FeePage() {
     EXTRAORDINARY: 0,
   };
 
-  const RECURRENCE_LABELS: Record<string, string> = {
+  const RECURRENCE_LABELS = {
     MONTHLY: 'Mensual (1 mes)',
     QUARTERLY: 'Trimestral (3 meses)',
     SEMESTERLY: 'Semestral (6 meses)',
     YEARLY: 'Anual (12 meses)',
     EXTRAORDINARY: 'Extraordinaria (monto manual)',
-  };
+  } as const;
 
   // Form state for status update
   const [statusForm, setStatusForm] = useState<{
@@ -183,8 +183,8 @@ export function FeePage() {
     setFormData((prev) => ({
       ...prev,
       amount: roundedAmount.toString(),
-      period,
-      dueDate,
+      period: period!,
+      dueDate: dueDate!,
     }));
   }, [selectedUnitDetails, recurrence]);
 
@@ -224,7 +224,7 @@ export function FeePage() {
     setEditFormData({
       amount: fee.amount.toString(),
       description: fee.description || '',
-      dueDate: fee.dueDate ? fee.dueDate.toString().split('T')[0] : '',
+      dueDate: fee.dueDate.split('T')[0] ?? '',
     });
     setIsEditModalOpen(true);
   };
@@ -278,7 +278,7 @@ export function FeePage() {
     setSelectedUnitDetails(null);
     setCurrentResident(null);
     setRecurrence('MONTHLY');
-    setManualAmount('');
+
     setIsCreateModalOpen(true);
   };
 
