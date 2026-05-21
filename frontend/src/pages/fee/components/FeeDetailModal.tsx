@@ -3,9 +3,9 @@
    Visualización detallada de una cuota con opción de edición.
    ============================================================================= */
 
-import type { Fee, FeeStatus } from '../../types/fee';
-import { StatusBadge, feeStatusVariant } from '../../components/Shared/StatusBadge';
-import { Modal } from '../../components/Shared/Modal';
+import type { Fee, FeeStatus } from '../../../types/fee';
+import { StatusBadge, feeStatusVariant } from '../../../components/Shared/StatusBadge';
+import { Modal } from '../../../components/Shared/Modal';
 import styles from './FeeDetailModal.module.css';
 
 // ── Constants ───────────────────────────────────────────────────────────────

@@ -4,9 +4,9 @@
    ============================================================================= */
 
 import { useEffect, useState } from 'react';
-import { Modal } from '../../components/Shared/Modal';
-import { FormField } from '../../components/Shared/FormField';
-import type { Fee, FeeStatus } from '../../types/fee';
+import { Modal } from '../../../components/Shared/Modal';
+import { FormField } from '../../../components/Shared/FormField';
+import type { Fee, FeeStatus } from '../../../types/fee';
 import styles from './FeeStatusModal.module.css';
 
 // ── Props ────────────────────────────────────────────────────────────────────

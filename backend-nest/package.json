@@ -18,7 +18,12 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "db:setup": "prisma migrate deploy && prisma db seed"
+    "db:setup": "prisma migrate deploy && prisma db seed",
+    "test:integration": "jest --config jest.integration.config.ts --no-cache",
+    "db:test:setup": "DATABASE_URL=postgresql://saas_admin:saas_dev_password_2026@localhost:5435/saas_inmobiliario_test npx prisma migrate deploy",
+    "db:test:create": "PGPASSWORD=saas_dev_password_2026 psql -h localhost -p 5435 -U saas_admin -d postgres -c 'CREATE DATABASE saas_inmobiliario_test;'",
+    "db:test:drop": "PGPASSWORD=saas_dev_password_2026 psql -h localhost -p 5435 -U saas_admin -d postgres -c 'DROP DATABASE IF EXISTS saas_inmobiliario_test;'",
+    "test:integration:setup": "npm run db:test:drop && npm run db:test:create && npm run db:test:setup"
   },
   "prisma": {
     "seed": "npx ts-node prisma/seed.ts"

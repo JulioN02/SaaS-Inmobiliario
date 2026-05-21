@@ -3,7 +3,7 @@
    Filtros de estado: Todas, Pendientes, Pagadas, Parciales
    ============================================================================= */
 
-import type { FeeStatus } from '../../types/fee';
+import type { FeeStatus } from '../../../types/fee';
 import styles from './FeeStatusTabs.module.css';
 
 interface FeeStatusTabsProps {
