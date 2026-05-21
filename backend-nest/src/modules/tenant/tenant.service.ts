@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException, ForbiddenException } 
 import { PrismaService } from '../../config/prisma.service';
 import { AuditService } from '../shared/audit.service';
 import { CreateTenantDto, UpdateTenantDto, FindAllTenantsDto, CreateTenantResponseDto } from './dto';
-import { TenantPlan, TenantStatus, Prisma, AuditAction, AuditEntity } from '@prisma/client';
+import { TenantPlan, TenantStatus, UserRole, Prisma, AuditAction, AuditEntity } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -106,7 +106,7 @@ export class TenantService {
         roleId: adminRole.id,
         email: adminEmail,
         password: hashedPassword,
-        role: 'ADMIN_TENANT' as any,
+        role: UserRole.ADMIN_TENANT,
         firstName: 'Admin',
         lastName: dto.name,
         isActive: true,

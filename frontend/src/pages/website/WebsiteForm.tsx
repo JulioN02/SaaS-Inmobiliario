@@ -47,7 +47,7 @@ export function WebsiteForm({ config, onSubmit, loading }: WebsiteFormProps) {
     watch,
     formState: { errors },
   } = useForm<WebsiteFormData>({
-    resolver: zodResolver(websiteSchema) as any,
+    resolver: zodResolver(websiteSchema),
     defaultValues: {
       siteTitle: config?.siteTitle || '',
       welcomeMessage: config?.welcomeMessage || '',

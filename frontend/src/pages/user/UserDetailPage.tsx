@@ -100,7 +100,7 @@ export function UserDetailPage({ user, onClose, onSuccess }: UserDetailPageProps
           lastName: '',
         },
   });
-  const err = errors as any;
+  const err: Record<string, { message?: string }> = errors as Record<string, { message?: string }>;
 
   // Reset cuando cambia el usuario (para edición)
   useEffect(() => {
