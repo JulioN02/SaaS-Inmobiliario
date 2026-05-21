@@ -49,7 +49,7 @@ export function PropertyPage() {
     limit,
     fetchProperties,
     deleteProperty,
-    setSelectedProperty,
+    setSelectedProperty: _setSelectedProperty,
     clearError,
   } = usePropertyStore();
 

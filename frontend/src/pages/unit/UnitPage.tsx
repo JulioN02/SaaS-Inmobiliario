@@ -160,6 +160,7 @@ export function UnitPage() {
 
   // Toggle publicar/ocultar unidad en sitio web
   const [togglingPublish, setTogglingPublish] = useState<string | null>(null);
+  void togglingPublish;
 
   const handleTogglePublish = async (unit: Unit) => {
     setTogglingPublish(unit.id);

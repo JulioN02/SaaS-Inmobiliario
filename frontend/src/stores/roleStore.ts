@@ -9,7 +9,7 @@ import type {
   CreateRoleDto,
   UpdateRoleDto,
   FindAllRolesParams,
-  PaginatedRoles,
+  // PaginatedRoles,
   Permission,
 } from '../types/role';
 import {
