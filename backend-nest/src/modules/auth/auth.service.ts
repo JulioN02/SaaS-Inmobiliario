@@ -67,7 +67,7 @@ export class AuthService {
     }));
 
     const expiresIn = 86400; // 24h
-    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+    const jwtSecret = this.configService.get<string>('JWT_SECRET', 'dev-secret-change-in-production');
     
     const token = jwt.sign(
       {
