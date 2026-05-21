@@ -1,0 +1,278 @@
+/* =============================================================================
+   TenantPage — Estilos
+   ============================================================================= */
+
+.container {
+  padding: var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.filterSelect {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.createButton {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.createButton:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.createButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Tabla ────────────────────────────────────────────────────────────────── */
+
+.tableContainer {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: var(--color-gray-50);
+}
+
+/* ── Subdominio ──────────────────────────────────────────────────────────── */
+
+.subdomain {
+  font-size: var(--font-size-xs);
+  background: var(--color-gray-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ── Plan badge ─────────────────────────────────────────────────────────────── */
+
+.planBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.basic {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.premium {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.enterprise {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+/* ── Estado badge ─────────────────────────────────────────────────────────── */
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.statusActive {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.statusSuspended {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.statusInactive {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+/* ── Acciones de fila ─────────────────────────────────────────────────────── */
+
+.rowActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.editButton,
+.suspendButton,
+.activateButton,
+.deleteButton {
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background var(--transition-fast);
+}
+
+.editButton {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.editButton:hover {
+  background: var(--color-primary-200);
+}
+
+.suspendButton {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.suspendButton:hover {
+  background: var(--color-warning-200);
+}
+
+.activateButton {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.activateButton:hover {
+  background: var(--color-success-200);
+}
+
+.deleteButton {
+  background: var(--color-error-100);
+  color: var(--color-error-700);
+}
+
+.deleteButton:hover {
+  background: var(--color-error-200);
+}
+
+/* ── Paginación ──────────────────────────────────────────────────────────── */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.pageButton {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background var(--transition-fast);
+}
+
+.pageButton:hover:not(:disabled) {
+  background: var(--color-gray-50);
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ── Estados vacío y loading ─────────────────────────────────────────────── */
+
+.loading,
+.empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--space-4);
+  }
+
+  .header {
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: flex-start;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+}

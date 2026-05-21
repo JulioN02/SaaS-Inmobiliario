@@ -23,7 +23,7 @@ services:
     environment:
       <<: *db-env
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -36,7 +36,7 @@ services:
   # ── Backend (desarrollo con hot reload) ────────────────────────────────────
   backend:
     build:
-      context: ./Saas-Inmobiliario/backend
+      context: ./Saas-Inmobiliario/backend-nest
       target: production
     container_name: saas-backend
     restart: unless-stopped
@@ -55,15 +55,15 @@ services:
         condition: service_healthy
     # Para desarrollo con hot reload, descomentar:
     # volumes:
-    #   - ./Saas-Inmobiliario/backend/src:/app/src
-    #   - ./Saas-Inmobiliario/backend/prisma:/app/prisma
-    # command: sh -c "npx prisma migrate dev && npm run dev"
+    #   - ./Saas-Inmobiliario/backend-nest/src:/app/src
+    #   - ./Saas-Inmobiliario/backend-nest/prisma:/app/prisma
+    # command: sh -c "npx prisma migrate dev && npm run start:dev"
 
   # ── Backend (producción — multi-stage build, no hot reload) ────────────────
   # Descomentar para usar modo producción:
   # backend-prod:
   #   build:
-  #     context: ./Saas-Inmobiliario/backend
+  #     context: ./Saas-Inmobiliario/backend-nest
   #     target: production
   #   container_name: saas-backend-prod
   #   restart: always

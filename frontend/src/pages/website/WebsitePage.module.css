@@ -1,0 +1,383 @@
+/* =============================================================================
+   SaaS Inmobiliario — WebsitePage Styles
+   Two-column layout: form left, preview right
+   ============================================================================= */
+
+.container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0 0 12px;
+}
+
+.previewButton {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #10B981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.previewButton:hover {
+  background: #059669;
+}
+
+/* Two-column layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Form column */
+.formColumn {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.input {
+  padding: 8px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #334155;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.error {
+  font-size: 12px;
+  color: #EF4444;
+  margin: 0;
+}
+
+.logoInputGroup {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.logoPreview {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #CBD5E1;
+  flex-shrink: 0;
+}
+
+.logoPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Color pickers */
+.colorRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.colorField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.colorInputGroup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.colorPicker {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.colorText {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #334155;
+  font-family: monospace;
+}
+
+.colorText:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* SEO section */
+.seoSection {
+  border-top: 1px solid #E2E8F0;
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0 0 16px 0;
+}
+
+/* Toggles */
+.togglesSection {
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: 6px;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+}
+
+.toggleLabel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Form actions */
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.submitButton {
+  padding: 10px 24px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitButton:hover {
+  background: #2563EB;
+}
+
+.submitButton:disabled {
+  background: #94A3B8;
+  cursor: not-allowed;
+}
+
+/* Preview column */
+.previewColumn {
+  position: sticky;
+  top: 24px;
+}
+
+.previewCard {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 2px solid #E2E8F0;
+}
+
+/* Maintenance banner */
+.maintenanceBanner {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 16px;
+  border: 2px solid #F59E0B;
+}
+
+/* Preview header */
+.previewHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid;
+}
+
+.previewLogoContainer {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewLogo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.previewTitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Preview body */
+.previewBody {
+  margin-bottom: 16px;
+}
+
+.previewMessage {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Preview contact */
+.previewContact {
+  background: #F8FAFC;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.previewContactTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0 0 8px 0;
+}
+
+.previewContactItem {
+  font-size: 13px;
+  color: #475569;
+  margin: 4px 0;
+}
+
+/* Preview colors */
+.previewColors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.colorPreviewItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.colorBox {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #CBD5E1;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+  color: #64748B;
+}
+
+/* Error state */
+.errorContainer {
+  padding: 16px;
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  border-radius: 6px;
+  color: #991B1B;
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .previewColumn {
+    position: static;
+  }
+
+  .colorRow {
+    grid-template-columns: 1fr;
+  }
+}

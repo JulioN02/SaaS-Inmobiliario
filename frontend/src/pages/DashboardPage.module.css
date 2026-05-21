@@ -1,10 +1,10 @@
 /* =============================================================================
-   DashboardPage — Estilos
+   DashboardPage — Estilos mejorados
    ============================================================================= */
 
 .container {
   padding: var(--space-6);
-  max-width: 1200px;
+  max-width: 1400px;
 }
 
 .title {
@@ -18,7 +18,7 @@
 
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
@@ -30,7 +30,19 @@
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  position: relative;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.statCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.statIcon {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-1);
 }
 
 .statTitle {
@@ -46,11 +58,48 @@
   line-height: 1;
 }
 
+.statSubtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ── Mini statistics row ─────────────────────────────────────────────────── */
+
+.metricsRow {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.miniStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 70px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+}
+
+.miniStatValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+}
+
+.miniStatLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 /* ── Gráficos ──────────────────────────────────────────────────────────────── */
 
 .chartsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
@@ -84,7 +133,7 @@
 .barLabel {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
-  min-width: 100px;
+  min-width: 110px;
 }
 
 .bar {
@@ -110,40 +159,76 @@
   text-align: right;
 }
 
-.infoText {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  margin-top: var(--space-3);
-  margin-bottom: 0;
+/* ── Listas (mantenimiento, cuotas, anuncios) ───────────────────────────── */
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-/* ── Registros recientes ───────────────────────────────────────────────────── */
-
-.recentSection {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-4);
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-gray-100);
+  gap: var(--space-2);
 }
 
-.recentCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+.itemRow:last-child {
+  border-bottom: none;
 }
 
-.recentCard h3 {
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemTitle {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-2);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.recentValue {
-  font-size: var(--font-size-lg);
+.itemMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.statusDot {
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: 0;
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.daysBadge {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.priorityBadge {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
 /* ── Loading ────────────────────────────────────────────────────────────────── */
@@ -200,6 +285,22 @@
   background: var(--color-primary-hover);
 }
 
+/* ── Estados vacíos ────────────────────────────────────────────────────────── */
+
+.sectionEmpty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.sectionLoading {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-4);
+  text-align: center;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
@@ -209,5 +310,18 @@
 
   .chartsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metricsRow {
+    gap: var(--space-2);
+  }
+
+  .miniStat {
+    min-width: 60px;
+    padding: var(--space-1) var(--space-2);
   }
 }

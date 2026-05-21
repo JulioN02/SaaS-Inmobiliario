@@ -40,6 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/website', label: 'Website', icon: '🌐', roles: ['ADMIN_TENANT'] },
   { path: '/audit', label: 'Auditoría', icon: '🔍', roles: ['ADMIN_TENANT'] },
   { path: '/users', label: 'Usuarios', icon: '👤', roles: ['ADMIN_TENANT'] },
+  { path: '/roles', label: 'Roles', icon: '🔐', roles: ['ADMIN_TENANT'] },
 ];
 
 interface SidebarProps {

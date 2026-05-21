@@ -83,6 +83,29 @@ export interface Tenant extends BaseEntity {
   contactPhone?: string;
 }
 
+export interface CreateTenantDto {
+  name: string;
+  subdomain: string;
+  plan: TenantPlan;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
+export interface UpdateTenantDto {
+  name?: string;
+  subdomain?: string;
+  plan?: TenantPlan;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
+export interface FindAllTenantsParams {
+  page?: number;
+  limit?: number;
+  status?: TenantStatus;
+  plan?: TenantPlan;
+}
+
 // ── Dominio: Property ───────────────────────────────────────────────────────
 
 export interface Property extends BaseEntity {
@@ -186,6 +209,11 @@ export interface AuditLog {
   id: string;
   tenantId: string;
   userId: string;
+  userInfo?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
   entity: string;
   entityId: string;
   action: string;
@@ -194,17 +222,58 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export interface FindAllAuditParams {
+  page?: number;
+  limit?: number;
+  entity?: string;
+  action?: 'CREATE' | 'UPDATE' | 'DELETE';
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface PaginatedAuditLogs {
+  data: AuditLog[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // ── Métricas ────────────────────────────────────────────────────────────────
+
+export interface FeeMetrics {
+  pending: number;
+  paid: number;
+  partial: number;
+  overdue: number;
+  totalCollected: number;
+  collectionRate: number;
+}
+
+export interface VisitorMetrics {
+  today: number;
+  active: number;
+  thisWeek: number;
+}
+
+export interface MaintenanceMetrics {
+  pending: number;
+  inProgress: number;
+  resolved: number;
+  cancelled: number;
+}
 
 export interface Metrics {
   tenantsActive: number;
   tenantsSuspended: number;
+  totalProperties: number;
   totalUnits: number;
   totalUsers: number;
+  totalResidents: number;
+  occupancyRate: number;
   unitsByStatus: Record<UnitStatus, number>;
   tenantsByPlan: Record<TenantPlan, number>;
-  feesByStatus: Record<FeeStatus, number>;
-  feesDueSoon: number;
-  maintenanceOpen: number;
-  visitorsToday: number;
+  fees: FeeMetrics;
+  visitors: VisitorMetrics;
+  maintenance: MaintenanceMetrics;
 }

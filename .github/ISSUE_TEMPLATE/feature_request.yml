@@ -1,0 +1,19 @@
+name: Feature Request
+description: Sugiere una nueva característica para el proyecto
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Descripción de la funcionalidad
+        Describe brevemente qué te gustaría que se agregara.
+
+        ## Problema que resuelve
+        ¿Qué problema o limitación resuelve esta característica?
+
+        ## Propuesta de solución
+        Si tienes una idea de cómo implementarlo, descríbela.
+
+        ## Contexto adicional
+        Añade cualquier contexto adicional que sea relevante.

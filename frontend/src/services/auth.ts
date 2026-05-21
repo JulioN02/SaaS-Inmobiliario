@@ -1,15 +1,49 @@
 /* =============================================================================
    SaaS Inmobiliario — Servicio de Autenticación
    Funciones que llaman al endpoint /auth del backend
+   Soporta login multi-tenant por subdominio (x-tenant-id dinámico)
    ============================================================================= */
 
 import { api } from './api';
 import type { LoginResponse } from '../types';
 
-// ── Login ───────────────────────────────────────────────────────────────────
+// Tenant ID del platform (seed data) - fallback para desarrollo local
+const PLATFORM_TENANT_ID = '2fdee7cd-3d10-49f5-a096-38e11b8391a9';
 
-export async function loginService(email: string, password: string): Promise<LoginResponse> {
-  const response = await api.post<LoginResponse>('/auth/login', { email, password });
+// ── Resolver tenant desde subdominio ─────────────────────────────────────────
+// El backend ya soporta subdominios en x-tenant-id (TenantGuard step 2).
+
+function resolveTenantId(): string {
+  if (typeof window === 'undefined') {
+    return PLATFORM_TENANT_ID; // SSR / test fallback
+  }
+
+  const hostname = window.location.hostname;
+
+  // localhost directo → platform tenant (dev)
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return PLATFORM_TENANT_ID;
+  }
+
+  // Extraer subdominio: "losalamos" de "losalamos.localhost"
+  // Se envía como x-tenant-id; el backend lo resuelve a UUID
+  return hostname.split('.')[0] ?? PLATFORM_TENANT_ID;
+}
+
+// ── Login ───────────────────────────────────────────────────────────────────
+// subdomain opcional: si se pasa, se usa como x-tenant-id.
+// Si no, se resuelve automáticamente desde el subdominio del navegador.
+
+export async function loginService(
+  email: string,
+  password: string,
+  subdomain?: string,
+): Promise<LoginResponse> {
+  const tenantId = subdomain || resolveTenantId();
+  const response = await api.post<LoginResponse>('/auth/login',
+    { email, password },
+    { headers: { 'x-tenant-id': tenantId } }
+  );
   return response.data;
 }
 
@@ -18,6 +52,7 @@ export async function loginService(email: string, password: string): Promise<Log
 export function logoutService(): void {
   localStorage.removeItem('saas_token');
   localStorage.removeItem('saas_user');
+  localStorage.removeItem('saas_tenant_id');
 }
 
 // ── Recuperar sesión guardada ───────────────────────────────────────────────
@@ -35,6 +70,7 @@ export function getStoredSession(): { token: string; user: LoginResponse['user']
     // JSON inválido → limpiar
     localStorage.removeItem('saas_token');
     localStorage.removeItem('saas_user');
+    localStorage.removeItem('saas_tenant_id');
     return null;
   }
 }
@@ -44,4 +80,5 @@ export function getStoredSession(): { token: string; user: LoginResponse['user']
 export function saveSession(token: string, user: LoginResponse['user']): void {
   localStorage.setItem('saas_token', token);
   localStorage.setItem('saas_user', JSON.stringify(user));
+  localStorage.setItem('saas_tenant_id', user.clientId);
 }

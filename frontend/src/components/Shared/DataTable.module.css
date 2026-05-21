@@ -1,0 +1,96 @@
+/* =============================================================================
+   SaaS Inmobiliario — DataTable.module.css
+   ============================================================================= */
+
+.tableContainer {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sortableHeader {
+  cursor: pointer;
+}
+
+.sortableHeader:hover {
+  color: var(--color-text-primary);
+}
+
+.headerContent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sortIcon {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: var(--color-gray-50);
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:hover td {
+  background: var(--color-primary-50);
+}
+
+.loading,
+.empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.actionsHeader {
+  text-align: right;
+  width: 120px;
+}
+
+.actionsCell {
+  text-align: right;
+  vertical-align: middle;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+}

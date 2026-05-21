@@ -61,13 +61,9 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
         <span className={styles.tenantName}>Conjunto Residencial Las Palmas</span>
       </div>
 
-      {/* ── Derecha: notificaciones + usuario ────────────────────────────── */}
+      {/* ── Derecha: usuario ─────────────────────────────────────────────── */}
       <div className={styles.right}>
-        {/* Campana de notificaciones */}
-        <button className={styles.bell} aria-label="Notificaciones">
-          🔔
-          <span className={styles.bellBadge} />
-        </button>
+        {/* Campana de notificaciones (pendiente de implementar) */}
 
         {/* Menú de usuario */}
         <div className={styles.userMenu} ref={menuRef}>
