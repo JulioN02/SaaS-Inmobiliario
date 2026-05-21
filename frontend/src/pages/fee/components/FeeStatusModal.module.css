@@ -1,0 +1,49 @@
+/* =============================================================================
+   SaaS Inmobiliario — FeeStatusModal Styles
+   ============================================================================= */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background: #F1F5F9;
+}
+
+.submitButton {
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #2563EB;
+}
+
+.submitButton:disabled {
+  background: #94A3B8;
+  cursor: not-allowed;
+}
