@@ -1,17 +1,28 @@
 # =============================================================================
 # SaaS Inmobiliario — Docker Compose
-# Uso: docker compose up (desarrollo) | docker compose -f docker-compose.yml -f docker-compose.prod.yml up (producción)
+# =============================================================================
+# Uso:
+#   Desarrollo:  docker compose up
+#   Producción:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   Tests:       docker compose run --rm test-db-setup
 # =============================================================================
 
 # ── Variables de entorno reutilizables ───────────────────────────────────────
 x-db-env: &db-env
-  POSTGRES_USER: saas_admin
-  POSTGRES_PASSWORD: saas_dev_password_2026
-  POSTGRES_DB: saas_inmobiliario
+  POSTGRES_USER: ${POSTGRES_USER:-saas_admin}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-saas_dev_password_2026}
+  POSTGRES_DB: ${POSTGRES_DB:-saas_inmobiliario}
 
-x-jwt-env: &jwt-env
-  JWT_SECRET: "supersecretsaasjwt_2026_desarrollo"
-  JWT_EXPIRES_IN: "1h"
+x-backend-env: &backend-env
+  NODE_ENV: ${NODE_ENV:-development}
+  PORT: "3000"
+  DATABASE_URL: "postgresql://${POSTGRES_USER:-saas_admin}:${POSTGRES_PASSWORD:-saas_dev_password_2026}@postgres:5432/${POSTGRES_DB:-saas_inmobiliario}"
+  JWT_SECRET: ${JWT_SECRET:-supersecretsaasjwt_2026_desarrollo}
+  JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+  PLATFORM_TENANT_ID: ${PLATFORM_TENANT_ID:-00000000-0000-0000-0000-000000000000}
+  SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@platform.com}
+  SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-Admin_Pass_2026!}
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:80,http://localhost:5173}
 
 # ── Servicios ────────────────────────────────────────────────────────────────
 services:
@@ -23,61 +34,105 @@ services:
     environment:
       <<: *db-env
     ports:
-      - "5435:5432"
+      - "${DB_PORT_HOST:-5435}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U saas_admin -d saas_inmobiliario"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-saas_admin} -d ${POSTGRES_DB:-saas_inmobiliario}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - saas-network
 
-  # ── Backend (desarrollo con hot reload) ────────────────────────────────────
+  # ── Backend (NestJS) ──────────────────────────────────────────────────────
   backend:
     build:
-      context: ./Saas-Inmobiliario/backend-nest
-      target: production
+      context: ./backend-nest
+      dockerfile: Dockerfile
     container_name: saas-backend
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
-      NODE_ENV: "development"
-      PORT: "3000"
-      DATABASE_URL: "postgresql://saas_admin:saas_dev_password_2026@postgres:5432/saas_inmobiliario"
-      <<: *jwt-env
-      PLATFORM_TENANT_ID: "00000000-0000-0000-0000-000000000000"
-      SUPER_ADMIN_EMAIL: "admin@platform.com"
-      SUPER_ADMIN_PASSWORD: "Admin_Pass_2026!"
+      <<: *backend-env
     depends_on:
       postgres:
         condition: service_healthy
-    # Para desarrollo con hot reload, descomentar:
-    # volumes:
-    #   - ./Saas-Inmobiliario/backend-nest/src:/app/src
-    #   - ./Saas-Inmobiliario/backend-nest/prisma:/app/prisma
-    # command: sh -c "npx prisma migrate dev && npm run start:dev"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/v1/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - saas-network
+    # En desarrollo, montar código fuente para hot reload
+    volumes:
+      - type: bind
+        source: ./backend-nest/src
+        target: /app/src
+        read_only: true
+      - type: bind
+        source: ./backend-nest/prisma
+        target: /app/prisma
+        read_only: true
+    # En desarrollo, usar hot reload con ts-node watch
+    command: >
+      sh -c "
+        npx prisma generate &&
+        npx prisma migrate deploy &&
+        node -r ts-node/register/transpile-only -r tsconfig-paths/register src/main.ts
+      "
 
-  # ── Backend (producción — multi-stage build, no hot reload) ────────────────
-  # Descomentar para usar modo producción:
-  # backend-prod:
-  #   build:
-  #     context: ./Saas-Inmobiliario/backend-nest
-  #     target: production
-  #   container_name: saas-backend-prod
-  #   restart: always
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     NODE_ENV: "production"
-  #     PORT: "3000"
-  #     DATABASE_URL: "postgresql://saas_admin:saas_dev_password_2026@postgres:5432/saas_inmobiliario"
-  #     <<: *jwt-env
-  #     PLATFORM_TENANT_ID: "00000000-0000-0000-0000-000000000000"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
+  # ── Frontend (React + Vite) ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: saas-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - saas-network
+
+  # ── Test PostgreSQL (opcional, solo para tests de integración) ───────────
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: saas-postgres-test
+    restart: "no"
+    environment:
+      POSTGRES_USER: saas_admin
+      POSTGRES_PASSWORD: saas_dev_password_2026
+      POSTGRES_DB: saas_inmobiliario_test
+    ports:
+      - "${TEST_DB_PORT:-5436}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saas_admin -d saas_inmobiliario_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - saas-network
+    profiles:
+      - test
+      - ci
+
+# ── Redes ────────────────────────────────────────────────────────────────────
+networks:
+  saas-network:
+    name: saas-network
+    driver: bridge
 
 # ── Volúmenes persistentes ───────────────────────────────────────────────────
 volumes:

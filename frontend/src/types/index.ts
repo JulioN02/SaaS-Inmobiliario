@@ -127,6 +127,7 @@ export interface Unit extends BaseEntity {
   floor?: number;
   status: UnitStatus;
   monthlyFeeAmount?: number;
+  isPublished?: boolean;
 }
 
 // ── Dominio: Resident ───────────────────────────────────────────────────────

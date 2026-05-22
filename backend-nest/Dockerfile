@@ -1,56 +1,41 @@
 # =============================================================================
 # Backend SaaS Inmobiliario (NestJS) — Dockerfile
-# Multi-stage: build → production
+# Single-stage: instala deps, genera Prisma, ejecuta con ts-node
+# =============================================================================
+# NOTA: Se usa ts-node en producción porque tsc v6 tiene un bug de emisión
+# con Node.js 26. Al actualizar tsc a una versión estable, reemplazar por
+# node dist/main.js con compilación previa.
 # =============================================================================
 
-# ── Stage 1: Build ──────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS base
 
 WORKDIR /app
 
-# Copy dependency manifests first (Docker cache layer)
+# ── System dependencies ───────────────────────────────────────────────────
+RUN apk add --no-cache dumb-init wget
+
+# ── Dependency manifests ──────────────────────────────────────────────────
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps && npm cache clean --force
 
-# Copy source code
-COPY tsconfig.json ./
+# ── Prisma ────────────────────────────────────────────────────────────────
 COPY prisma ./prisma/
-COPY src ./src/
-
-# Generate Prisma client
 RUN npx prisma generate
 
-# Compile TypeScript
-RUN npm run build
+# ── Source code ───────────────────────────────────────────────────────────
+COPY tsconfig.json ./
+COPY src ./src/
 
-# ── Stage 2: Production ─────────────────────────────────────────────────────
-FROM node:20-alpine AS production
-
-WORKDIR /app
-
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
-
-# Copy dependency manifests and install production deps only
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Copy Prisma schema and generated client
-COPY prisma ./prisma/
-
-# Copy compiled code from builder
-COPY --from=builder /app/dist ./dist
-
-# Create non-root user for security
+# ── Non-root user ─────────────────────────────────────────────────────────
 RUN addgroup -g 1001 -S appgroup && \
-    adduser -S appuser -u 1001 -G appgroup
+    adduser -S appuser -u 1001 -G appgroup && \
+    chown -R appuser:appgroup /app
 
 USER appuser
 
 EXPOSE 3000
 
-# Use dumb-init to handle PID 1 and signal forwarding
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start: run migrations then start server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# Run migrations then start with ts-node
+CMD ["sh", "-c", "npx prisma migrate deploy && node -r ts-node/register/transpile-only -r tsconfig-paths/register src/main.ts"]

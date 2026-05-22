@@ -12,9 +12,23 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
+  // Prefijo global: todas las rutas bajo /api/v1/
+  app.setGlobalPrefix('api/v1');
+
   // Middlewares globales
   app.use(helmet());
-  app.use(cors());
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGINS?.split(',') || [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://julion02.github.io',
+      ],
+      credentials: true,
+      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id'],
+    }),
+  );
   app.use(morgan('dev'));
 
   // Validation pipe global
@@ -23,7 +37,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    })
+    }),
   );
 
   // Exception filter global
@@ -36,16 +50,17 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
   const port = configService.get<number>('PORT', 3000);
-  
+
   await app.listen(port);
-  
-  console.log(`Server running on port ${port}`);
-  console.log(`Swagger UI: http://localhost:${port}/docs`);
+
+  console.log(`\n🚀 Server running on http://localhost:${port}`);
+  console.log(`📚 Swagger UI: http://localhost:${port}/docs`);
+  console.log(`🔗 API Base: http://localhost:${port}/api/v1`);
 }
 
 bootstrap();

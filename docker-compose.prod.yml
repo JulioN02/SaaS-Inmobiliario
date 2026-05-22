@@ -1,0 +1,37 @@
+# =============================================================================
+# SaaS Inmobiliario — Docker Compose Production Override
+# =============================================================================
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# =============================================================================
+
+services:
+  # ── Backend (producción) ──────────────────────────────────────────────────
+  backend:
+    # Sin volúmenes bind (código está embebido en la imagen)
+    volumes: []
+    # Sin puertos expuestos al host (solo accesible vía nginx/frontend)
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: "production"
+
+  # ── Frontend (producción) ────────────────────────────────────────────────
+  frontend:
+    build:
+      args:
+        - VITE_API_URL=/api/v1
+    environment:
+      VITE_API_URL: /api/v1
+    ports:
+      - "${PORT:-80}:80"
+
+  # ── PostgreSQL (producción) ──────────────────────────────────────────────
+  postgres:
+    restart: always
+    # Backup: usar volumen externo o montura bind para datos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - type: bind
+        source: ./backups
+        target: /backups
+        read_only: false

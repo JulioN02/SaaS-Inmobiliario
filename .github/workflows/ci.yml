@@ -1,0 +1,144 @@
+# =============================================================================
+# CI — SaaS Inmobiliario
+# =============================================================================
+# Runs backend tests, frontend tests, and integration tests on every push/PR.
+# Total: 277+ tests (102 frontend + 175 backend, including 8 integration)
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Backend — unit tests + TypeScript compilation
+  # ───────────────────────────────────────────────────────────────────────────
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend-nest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./backend-nest/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
+
+      - name: Run unit tests
+        run: npm test
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Frontend — Vitest + Vite build
+  # ───────────────────────────────────────────────────────────────────────────
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Build (TypeScript + Vite)
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:3000
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Integration — backend tests against a real PostgreSQL
+  # ───────────────────────────────────────────────────────────────────────────
+  integration:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend-nest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: saas_admin
+          POSTGRES_PASSWORD: saas_dev_password_2026
+          POSTGRES_DB: saas_inmobiliario_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./backend-nest/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Prisma migrations on test DB
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://saas_admin:saas_dev_password_2026@localhost:5432/saas_inmobiliario_test
+
+      - name: Seed base data (roles, permissions, plans)
+        run: npx ts-node --files prisma/seed.ts
+        env:
+          DATABASE_URL: postgresql://saas_admin:saas_dev_password_2026@localhost:5432/saas_inmobiliario_test
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://saas_admin:saas_dev_password_2026@localhost:5432/saas_inmobiliario_test

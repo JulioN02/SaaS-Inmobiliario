@@ -165,7 +165,7 @@ export function UnitPage() {
   const handleTogglePublish = async (unit: Unit) => {
     setTogglingPublish(unit.id);
     try {
-      await updateUnit(unit.id, { isPublished: !unit.isPublished } as any);
+      await updateUnit(unit.id, { isPublished: !unit.isPublished });
       toast.success(
         unit.isPublished
           ? 'Unidad oculta del sitio web'
