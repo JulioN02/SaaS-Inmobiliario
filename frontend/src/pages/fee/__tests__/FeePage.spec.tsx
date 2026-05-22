@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FeePage } from '../FeePage';
-import type { Fee, FeeStatus } from '../../types/fee';
+import type { Fee, FeeStatus } from '../../../types/fee';
 
 // ── Mocks de stores ──────────────────────────────────────────────────────────
 
@@ -481,7 +481,8 @@ describe('FeePage', () => {
 
       const verDetalleButtons = screen.getAllByText('Ver detalle');
       expect(verDetalleButtons.length).toBeGreaterThanOrEqual(1);
-      fireEvent.click(verDetalleButtons[0]);
+      const firstVerDetalle = verDetalleButtons[0]!;
+      fireEvent.click(firstVerDetalle);
 
       await waitFor(() => {
         expect(screen.getByTestId('detail-modal')).toBeInTheDocument();
@@ -499,7 +500,8 @@ describe('FeePage', () => {
       );
 
       render(<FeePage />);
-      fireEvent.click(screen.getAllByText('Ver detalle')[0]);
+      const verDetalleBtn = screen.getAllByText('Ver detalle')[0]!;
+      fireEvent.click(verDetalleBtn);
 
       await waitFor(() => {
         expect(screen.getByTestId('detail-modal')).toBeInTheDocument();
@@ -530,7 +532,8 @@ describe('FeePage', () => {
 
       const editButtons = screen.getAllByText('Editar');
       expect(editButtons.length).toBeGreaterThanOrEqual(1);
-      fireEvent.click(editButtons[0]);
+      const firstEdit = editButtons[0]!;
+      fireEvent.click(firstEdit);
 
       await waitFor(() => {
         expect(screen.getByTestId('edit-modal')).toBeInTheDocument();

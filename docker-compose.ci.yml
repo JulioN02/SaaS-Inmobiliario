@@ -1,0 +1,39 @@
+# =============================================================================
+# SaaS Inmobiliario — Docker Compose CI
+# =============================================================================
+# Uso: docker compose -f docker-compose.yml -f docker-compose.ci.yml up --abort-on-container-exit
+# =============================================================================
+
+services:
+  # ── Test database ──────────────────────────────────────────────────────────
+  postgres-test:
+    profiles: []
+    restart: "no"
+
+  # ── Test runner ───────────────────────────────────────────────────────────
+  test-runner:
+    build:
+      context: ./backend-nest
+      dockerfile: Dockerfile
+    container_name: saas-test-runner
+    environment:
+      NODE_ENV: "test"
+      DATABASE_URL: "postgresql://saas_admin:saas_dev_password_2026@postgres-test:5432/saas_inmobiliario_test"
+      JWT_SECRET: "test-secret"
+      JWT_EXPIRES_IN: "1h"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-test:
+        condition: service_healthy
+    command: >
+      sh -c "
+        npx prisma generate &&
+        DATABASE_URL=postgresql://saas_admin:saas_dev_password_2026@postgres-test:5432/saas_inmobiliario_test npx prisma migrate deploy &&
+        npm test &&
+        npm run test:integration
+      "
+    networks:
+      - saas-network
+    profiles:
+      - ci

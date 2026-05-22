@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FeeStatusModal } from '../components/FeeStatusModal';
-import type { Fee } from '../../types/fee';
+import type { Fee } from '../../../types/fee';
 
 // Mock shared components to focus on FeeStatusModal logic
 vi.mock('../../../components/Shared/Modal', () => ({

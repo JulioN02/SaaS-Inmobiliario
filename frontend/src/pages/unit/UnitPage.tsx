@@ -8,7 +8,7 @@ import { useUnitStore } from '../../stores/unitStore';
 import { usePropertyStore } from '../../stores/propertyStore';
 import { useTowerStore } from '../../stores/towerStore';
 import { toast } from '../../stores/toastStore';
-import type { Unit, UnitType, UnitStatus, UpdateUnitDto, FindAllUnitsParams } from '../../types/property';
+import type { Unit, UnitType, UnitStatus, FindAllUnitsParams } from '../../types/property';
 import { StatusBadge, unitStatusVariant } from '../../components/Shared/StatusBadge';
 import { ConfirmDialog } from '../../components/Shared/ConfirmDialog';
 import styles from './UnitPage.module.css';

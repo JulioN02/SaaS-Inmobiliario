@@ -1,0 +1,45 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Docker files
+docker-compose*.yml
+.dockerignore
+
+# Node
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Temp
+tmp/
+temp/
+
+# Documents
+*.pdf
+*.doc
+*.docx
+
+# Notas
+*ANALISIS*
+*REPORTES*
+*MATRIZ*
