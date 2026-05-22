@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaService } from './config/prisma.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantModule } from './modules/tenant/tenant.module';
@@ -19,6 +21,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
 import { WebsiteModule } from './modules/website/website.module';
 import { PublicModule } from './modules/public/public.module';
 import { SharedModule } from './modules/shared/shared.module';
+import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 
 @Module({
   imports: [
@@ -26,6 +29,10 @@ import { SharedModule } from './modules/shared/shared.module';
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
     }),
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 60000, limit: 30 },
+      { name: 'strict', ttl: 60000, limit: 5 },
+    ]),
     SharedModule,
     AuthModule,
     TenantModule,
@@ -46,7 +53,13 @@ import { SharedModule } from './modules/shared/shared.module';
     PublicModule,
   ],
   controllers: [],
-  providers: [PrismaService],
+  providers: [
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,
+    },
+  ],
   exports: [PrismaService],
 })
 export class AppModule {}
