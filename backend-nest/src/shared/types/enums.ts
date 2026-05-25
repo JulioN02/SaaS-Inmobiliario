@@ -11,12 +11,6 @@ export enum UserRole {
   PORTERIA = 'PORTERIA',
 }
 
-export enum TenantPlan {
-  BASIC = 'BASIC',
-  PREMIUM = 'PREMIUM',
-  ENTERPRISE = 'ENTERPRISE',
-}
-
 export enum TenantStatus {
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',

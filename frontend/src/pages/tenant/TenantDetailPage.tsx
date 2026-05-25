@@ -3,11 +3,13 @@
    Formulario para crear o editar un tenant
    ============================================================================= */
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTenantStore } from '../../stores/tenantStore';
-import type { Tenant, TenantPlan, CreateTenantDto, UpdateTenantDto } from '../../types';
+import { usePlanStore } from '../../stores/planStore';
+import type { Tenant, CreateTenantDto, UpdateTenantDto } from '../../types';
 import styles from './TenantDetailPage.module.css';
 
 // ── Schema de validación ────────────────────────────────────────────────────
@@ -19,7 +21,7 @@ const createTenantSchema = z.object({
     .min(1, 'El subdominio es requerido')
     .max(50, 'Máximo 50 caracteres')
     .regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
-  plan: z.enum(['BASIC', 'PREMIUM', 'ENTERPRISE'], { message: 'El plan es requerido' }),
+  planId: z.string().min(1, 'El plan es requerido'),
   contactEmail: z.string().email('Email inválido').optional().or(z.literal('')),
   contactPhone: z.string().max(20, 'Máximo 20 caracteres').optional(),
 });
@@ -31,7 +33,7 @@ const updateTenantSchema = z.object({
     .min(1, 'El subdominio es requerido')
     .max(50, 'Máximo 50 caracteres')
     .regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
-  plan: z.enum(['BASIC', 'PREMIUM', 'ENTERPRISE']).optional(),
+  planId: z.string().min(1, 'El plan es requerido'),
   contactEmail: z.string().email('Email inválido').optional().or(z.literal('')),
   contactPhone: z.string().max(20, 'Máximo 20 caracteres').optional(),
 });
@@ -52,6 +54,21 @@ interface TenantDetailPageProps {
 export function TenantDetailPage({ tenant, onClose, onSuccess }: TenantDetailPageProps) {
   const isEdit = !!tenant;
   const { createTenant, updateTenant, loading } = useTenantStore();
+  const { activePlans, fetchActivePlans } = usePlanStore();
+
+  // Cargar planes activos al montar
+  useEffect(() => {
+    if (activePlans.length === 0) {
+      fetchActivePlans();
+    }
+  }, []);
+
+  // Formatear límites para mostrar en el select
+  const formatLimits = (limits: { properties: number; units: number; users: number }) => {
+    const props = limits.properties === -1 ? '∞' : limits.properties;
+    const users = limits.users === -1 ? '∞' : limits.users;
+    return `${props} props, ${users} users`;
+  };
 
   // Configurar formulario según modo
   const {
@@ -64,14 +81,14 @@ export function TenantDetailPage({ tenant, onClose, onSuccess }: TenantDetailPag
       ? {
           name: tenant.name,
           subdomain: tenant.subdomain,
-          plan: tenant.plan,
+          planId: tenant.plan?.id || '',
           contactEmail: tenant.contactEmail ?? '',
           contactPhone: tenant.contactPhone ?? '',
         }
       : {
           name: '',
           subdomain: '',
-          plan: 'BASIC' as TenantPlan,
+          planId: '',
           contactEmail: '',
           contactPhone: '',
         },
@@ -84,7 +101,7 @@ export function TenantDetailPage({ tenant, onClose, onSuccess }: TenantDetailPag
         const dto: UpdateTenantDto = {
           name: data.name,
           subdomain: data.subdomain,
-          plan: data.plan,
+          planId: data.planId,
           contactEmail: data.contactEmail || undefined,
           contactPhone: data.contactPhone || undefined,
         };
@@ -94,7 +111,7 @@ export function TenantDetailPage({ tenant, onClose, onSuccess }: TenantDetailPag
         const dto: CreateTenantDto = {
           name: createData.name,
           subdomain: createData.subdomain,
-          plan: createData.plan,
+          planId: createData.planId,
           contactEmail: createData.contactEmail || undefined,
           contactPhone: createData.contactPhone || undefined,
         };
@@ -158,26 +175,27 @@ export function TenantDetailPage({ tenant, onClose, onSuccess }: TenantDetailPag
             )}
           </div>
 
-          {/* Plan (solo crear) */}
-          {!isEdit && (
-            <div className={styles.field}>
-              <label htmlFor="plan" className={styles.label}>
-                Plan *
-              </label>
-              <select
-                id="plan"
-                className={`${styles.input} ${errors.plan ? styles.inputError : ''}`}
-                {...register('plan')}
-              >
-                <option value="BASIC">Básico (1 propiedad, 5 usuarios)</option>
-                <option value="PREMIUM">Premium (10 propiedades, 15 usuarios)</option>
-                <option value="ENTERPRISE">Enterprise (Sin límites)</option>
-              </select>
-              {errors.plan && (
-                <span className={styles.error}>{errors.plan.message}</span>
-              )}
-            </div>
-          )}
+          {/* Plan (select dinámico desde backend) */}
+          <div className={styles.field}>
+            <label htmlFor="planId" className={styles.label}>
+              Plan *
+            </label>
+            <select
+              id="planId"
+              className={`${styles.input} ${errors.planId ? styles.inputError : ''}`}
+              {...register('planId')}
+            >
+              <option value="">Seleccionar plan</option>
+              {activePlans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({formatLimits(p.limits)})
+                </option>
+              ))}
+            </select>
+            {errors.planId && (
+              <span className={styles.error}>{errors.planId.message}</span>
+            )}
+          </div>
 
           {/* Email de contacto */}
           <div className={styles.field}>

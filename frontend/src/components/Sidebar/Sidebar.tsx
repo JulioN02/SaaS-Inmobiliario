@@ -22,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 
   // SuperAdmin
   { path: '/tenants', label: 'Tenants', icon: '🏢', roles: ['SUPER_ADMIN'] },
+  { path: '/plans', label: 'Planes', icon: '📋', roles: ['SUPER_ADMIN'] },
   { path: '/platform-metrics', label: 'Métricas', icon: '📈', roles: ['SUPER_ADMIN'] },
 
   // Dominio inmobiliario

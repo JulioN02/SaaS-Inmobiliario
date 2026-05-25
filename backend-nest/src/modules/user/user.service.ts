@@ -14,7 +14,6 @@ import {
 } from './dto';
 import { AuditAction, AuditEntity, Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { PLAN_LIMITS } from '../../shared/constants/plan-limits';
 
 interface CallerCtx {
   userId: string;
@@ -350,16 +349,18 @@ export class UserService {
   private async validatePlanLimit(tenantId: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
+      include: { plan: { select: { limits: true } } },
     });
 
     if (!tenant) {
       throw new NotFoundException(`Tenant ${tenantId} no encontrado`);
     }
 
-    const limit = PLAN_LIMITS[tenant.plan].users;
+    const limitValue = (tenant.plan.limits as any).users;
+    const maxLimit = limitValue === -1 ? Infinity : limitValue;
 
-    // Enterprise has no limit
-    if (limit === Infinity) {
+    // No limit
+    if (maxLimit === Infinity) {
       return;
     }
 
@@ -370,9 +371,9 @@ export class UserService {
       },
     });
 
-    if (currentCount >= limit) {
+    if (currentCount >= maxLimit) {
       throw new ForbiddenException(
-        `Plan ${tenant.plan} permite máximo ${limit} usuarios. Actualmente tiene ${currentCount}.`,
+        `Límite del plan excedido: máximo ${maxLimit} usuarios. Actualmente tiene ${currentCount}.`,
       );
     }
   }

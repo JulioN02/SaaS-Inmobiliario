@@ -18,10 +18,12 @@ import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { AnnouncementModule } from './modules/announcement/announcement.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { PlanModule } from './modules/plan/plan.module';
 import { WebsiteModule } from './modules/website/website.module';
 import { PublicModule } from './modules/public/public.module';
 import { SharedModule } from './modules/shared/shared.module';
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -49,7 +51,9 @@ import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-prox
     AnnouncementModule,
     AuditModule,
     MetricsModule,
+    PlanModule,
     WebsiteModule,
+    BillingModule,
     PublicModule,
   ],
   controllers: [],

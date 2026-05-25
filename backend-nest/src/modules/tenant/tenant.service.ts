@@ -2,16 +2,9 @@ import { Injectable, NotFoundException, ConflictException, ForbiddenException } 
 import { PrismaService } from '../../config/prisma.service';
 import { AuditService } from '../shared/audit.service';
 import { CreateTenantDto, UpdateTenantDto, FindAllTenantsDto, CreateTenantResponseDto } from './dto';
-import { TenantPlan, TenantStatus, UserRole, Prisma, AuditAction, AuditEntity } from '@prisma/client';
+import { TenantStatus, Prisma, AuditAction, AuditEntity } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-
-// Plan limits — enforced in Service
-const PLAN_LIMITS: Record<TenantPlan, { properties: number; users: number }> = {
-  BASIC: { properties: 1, users: 5 },
-  PREMIUM: { properties: 10, users: 15 },
-  ENTERPRISE: { properties: Infinity, users: Infinity },
-};
 
 interface CallerCtx {
   userId: string;
@@ -26,12 +19,12 @@ export class TenantService {
   ) {}
 
   async findAll(filters: FindAllTenantsDto) {
-    const { status, plan, page = 1, limit = 10 } = filters;
+    const { status, planId, page = 1, limit = 10 } = filters;
 
     const where: Prisma.TenantWhereInput = {
       deletedAt: null,
       ...(status && { status }),
-      ...(plan && { plan }),
+      ...(planId && { planId }),
     };
 
     const [data, total] = await Promise.all([
@@ -40,6 +33,9 @@ export class TenantService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          plan: { select: { id: true, name: true, slug: true, limits: true } },
+        },
       }),
       this.prisma.tenant.count({ where }),
     ]);
@@ -56,6 +52,9 @@ export class TenantService {
   async findById(id: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id, deletedAt: null },
+      include: {
+        plan: { select: { id: true, name: true, slug: true, limits: true } },
+      },
     });
 
     if (!tenant) {
@@ -75,19 +74,16 @@ export class TenantService {
       throw new ConflictException(`El subdominio '${dto.subdomain}' ya está en uso`);
     }
 
-    // ── 2. Crear tenant ──────────────────────────────────────────────────
-    const tenant = await this.prisma.tenant.create({
-      data: {
-        name: dto.name,
-        subdomain: dto.subdomain,
-        plan: dto.plan || TenantPlan.BASIC,
-        status: dto.status || TenantStatus.ACTIVE,
-        contactEmail: dto.contactEmail,
-        contactPhone: dto.contactPhone,
-      },
+    // ── 2. Validar planId existe ──────────────────────────────────────────
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: dto.planId },
     });
 
-    // ── 3. Crear usuario AdminTenant automáticamente ─────────────────────
+    if (!plan) {
+      throw new NotFoundException(`Plan ${dto.planId} no encontrado`);
+    }
+
+    // ── 3. Obtener rol AdminTenant ──────────────────────────────────────
     const adminRole = await this.prisma.role.findUnique({
       where: { name: 'ADMIN_TENANT' },
     });
@@ -100,56 +96,101 @@ export class TenantService {
     const adminPassword = crypto.randomBytes(4).toString('hex'); // 8 chars
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
-    const adminUser = await this.prisma.user.create({
-      data: {
-        tenantId: tenant.id,
-        roleId: adminRole.id,
-        email: adminEmail,
-        password: hashedPassword,
-        role: UserRole.ADMIN_TENANT,
-        firstName: 'Admin',
-        lastName: dto.name,
-        isActive: true,
-      },
-    });
+    // ── 4. Crear tenant + adminUser + websiteConfig + subscription + billingConfig en transacción ──
+    const now = new Date();
+    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
-    // ── 4. Crear WebsiteConfig por defecto ───────────────────────────────
-    await this.prisma.websiteConfig.create({
-      data: {
-        tenantId: tenant.id,
-        siteTitle: dto.name,
-        welcomeMessage: `Bienvenido al portal de ${dto.name}`,
-        isPublic: true,
-        isMaintenanceMode: false,
-      },
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 4a. Crear tenant
+      const tenant = await tx.tenant.create({
+        data: {
+          name: dto.name,
+          subdomain: dto.subdomain,
+          planId: dto.planId,
+          status: dto.status || TenantStatus.ACTIVE,
+          contactEmail: dto.contactEmail,
+          contactPhone: dto.contactPhone,
+        },
+      });
+
+      // 4b. Crear usuario AdminTenant
+      const adminUser = await tx.user.create({
+        data: {
+          tenantId: tenant.id,
+          roleId: adminRole.id,
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'ADMIN_TENANT' as any,
+          firstName: 'Admin',
+          lastName: dto.name,
+          isActive: true,
+        },
+      });
+
+      // 4c. Crear WebsiteConfig por defecto
+      await tx.websiteConfig.create({
+        data: {
+          tenantId: tenant.id,
+          siteTitle: dto.name,
+          welcomeMessage: `Bienvenido al portal de ${dto.name}`,
+          isPublic: true,
+          isMaintenanceMode: false,
+        },
+      });
+
+      // 4d. Crear Subscription con trial de 14 días
+      await tx.subscription.create({
+        data: {
+          tenantId: tenant.id,
+          planId: dto.planId,
+          status: 'TRIALING' as any,
+          periodStart,
+          periodEnd,
+          trialEndsAt,
+        },
+      });
+
+      // 4e. Crear BillingConfig con defaults
+      await tx.billingConfig.create({
+        data: {
+          tenantId: tenant.id,
+          billingCycle: 'MONTHLY' as any,
+          currency: 'COP',
+          gracePeriodDays: 5,
+        },
+      });
+
+      return { tenant, adminUser };
     });
 
     // ── 5. Auditoría ────────────────────────────────────────────────────
     await this.auditService.log({
-      tenantId: tenant.id,
+      tenantId: result.tenant.id,
       userId: ctx.userId,
       entity: AuditEntity.tenant,
-      entityId: tenant.id,
+      entityId: result.tenant.id,
       action: AuditAction.CREATE,
       snapshot: {
-        name: tenant.name,
-        subdomain: tenant.subdomain,
-        plan: tenant.plan,
+        name: result.tenant.name,
+        subdomain: result.tenant.subdomain,
+        planId: result.tenant.planId,
         adminEmail,
       },
       ipAddress: ctx.ipAddress,
     });
 
     return {
-      id: tenant.id,
-      name: tenant.name,
-      subdomain: tenant.subdomain,
-      plan: tenant.plan,
-      status: tenant.status,
-      contactEmail: tenant.contactEmail,
-      contactPhone: tenant.contactPhone,
-      createdAt: tenant.createdAt,
-      updatedAt: tenant.updatedAt,
+      id: result.tenant.id,
+      name: result.tenant.name,
+      subdomain: result.tenant.subdomain,
+      planId: result.tenant.planId,
+      status: result.tenant.status,
+      contactEmail: result.tenant.contactEmail,
+      contactPhone: result.tenant.contactPhone,
+      createdAt: result.tenant.createdAt,
+      updatedAt: result.tenant.updatedAt,
       adminEmail,
       adminPassword,
     };
@@ -169,11 +210,25 @@ export class TenantService {
       }
     }
 
+    // If planId is being changed, validate it exists
+    if (dto.planId) {
+      const plan = await this.prisma.plan.findUnique({
+        where: { id: dto.planId },
+      });
+
+      if (!plan) {
+        throw new NotFoundException(`Plan ${dto.planId} no encontrado`);
+      }
+    }
+
     const updated = await this.prisma.tenant.update({
       where: { id },
       data: {
         ...dto,
         updatedAt: new Date(),
+      },
+      include: {
+        plan: { select: { id: true, name: true, slug: true, limits: true } },
       },
     });
 
@@ -188,13 +243,13 @@ export class TenantService {
         before: {
           name: tenant.name,
           subdomain: tenant.subdomain,
-          plan: tenant.plan,
+          planId: tenant.planId,
           contactEmail: tenant.contactEmail,
         },
         after: {
           name: updated.name,
           subdomain: updated.subdomain,
-          plan: updated.plan,
+          planId: updated.planId,
           contactEmail: updated.contactEmail,
         },
       },
@@ -214,6 +269,9 @@ export class TenantService {
     const updated = await this.prisma.tenant.update({
       where: { id },
       data: { status: TenantStatus.SUSPENDED },
+      include: {
+        plan: { select: { id: true, name: true, slug: true, limits: true } },
+      },
     });
 
     // Auditoría
@@ -243,6 +301,9 @@ export class TenantService {
     const updated = await this.prisma.tenant.update({
       where: { id },
       data: { status: TenantStatus.ACTIVE },
+      include: {
+        plan: { select: { id: true, name: true, slug: true, limits: true } },
+      },
     });
 
     // Auditoría
@@ -262,14 +323,23 @@ export class TenantService {
     return updated;
   }
 
-  async changePlan(id: string, plan: TenantPlan, ctx: CallerCtx) {
+  async changePlan(id: string, planId: string, ctx: CallerCtx) {
     const tenant = await this.findById(id);
 
-    if (tenant.plan === plan) {
-      throw new ConflictException(`El tenant ya tiene el plan ${plan}`);
+    if (tenant.planId === planId) {
+      throw new ConflictException(`El tenant ya tiene el plan asignado`);
     }
 
-    const newLimits = PLAN_LIMITS[plan];
+    // Validate target plan exists and read its limits
+    const targetPlan = await this.prisma.plan.findUnique({
+      where: { id: planId },
+    });
+
+    if (!targetPlan) {
+      throw new NotFoundException(`Plan ${planId} no encontrado`);
+    }
+
+    const newLimits = targetPlan.limits as { properties: number; users: number; units: number };
 
     // Verificar límites antes de hacer downgrade
     const [currentUsers, currentProperties] = await Promise.all([
@@ -281,21 +351,24 @@ export class TenantService {
       }),
     ]);
 
-    if (currentUsers > newLimits.users) {
+    if (currentUsers > this.parseLimit(newLimits.users)) {
       throw new ForbiddenException(
-        `No se puede hacer downgrade: el tenant tiene ${currentUsers} usuarios pero el plan '${plan}' permite ${newLimits.users}`,
+        `No se puede cambiar de plan: el tenant tiene ${currentUsers} usuarios pero el plan permite ${newLimits.users}`,
       );
     }
 
-    if (currentProperties > newLimits.properties) {
+    if (currentProperties > this.parseLimit(newLimits.properties)) {
       throw new ForbiddenException(
-        `No se puede hacer downgrade: el tenant tiene ${currentProperties} propiedades pero el plan '${plan}' permite ${newLimits.properties}`,
+        `No se puede cambiar de plan: el tenant tiene ${currentProperties} propiedades pero el plan permite ${newLimits.properties}`,
       );
     }
 
     const updated = await this.prisma.tenant.update({
       where: { id },
-      data: { plan },
+      data: { planId },
+      include: {
+        plan: { select: { id: true, name: true, slug: true, limits: true } },
+      },
     });
 
     // Auditoría
@@ -306,8 +379,8 @@ export class TenantService {
       entityId: id,
       action: AuditAction.UPDATE,
       snapshot: {
-        before: { plan: tenant.plan },
-        after: { plan: updated.plan },
+        before: { planId: tenant.planId, planName: tenant.plan.name },
+        after: { planId: updated.planId, planName: updated.plan.name },
       },
       ipAddress: ctx.ipAddress,
     });
@@ -321,6 +394,9 @@ export class TenantService {
     const updated = await this.prisma.tenant.update({
       where: { id },
       data: { deletedAt: new Date() },
+      include: {
+        plan: { select: { id: true, name: true, slug: true, limits: true } },
+      },
     });
 
     // Auditoría
@@ -333,11 +409,15 @@ export class TenantService {
       snapshot: {
         name: tenant.name,
         subdomain: tenant.subdomain,
-        plan: tenant.plan,
+        planId: tenant.planId,
       },
       ipAddress: ctx.ipAddress,
     });
 
     return updated;
+  }
+
+  private parseLimit(value: number): number {
+    return value === -1 ? Infinity : value;
   }
 }

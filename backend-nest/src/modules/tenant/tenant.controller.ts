@@ -21,7 +21,7 @@ import {
 } from './dto';
 import { JwtAuthGuard, TenantGuard, RbacGuard } from '../../common/guards';
 import { User, TenantId } from '../../common/decorators';
-import { TenantPlan } from '@prisma/client';
+
 
 @ApiTags('Tenants')
 @ApiBearerAuth()
@@ -140,10 +140,10 @@ export class TenantController {
   @ApiResponse({ status: 403, description: 'Límites del plan excedidos' })
   async changePlan(
     @Param('id') id: string,
-    @Body('plan') plan: TenantPlan,
+    @Body('planId') planId: string,
     @User('id') userId: string,
   ) {
-    return this.tenantService.changePlan(id, plan, { userId });
+    return this.tenantService.changePlan(id, planId, { userId });
   }
 
   @Delete(':id')

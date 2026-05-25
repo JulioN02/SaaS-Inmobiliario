@@ -7,6 +7,10 @@
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN_TENANT' | 'ADMINISTRATIVA' | 'PORTERIA';
 
+// ── Plan ────────────────────────────────────────────────────────────────────
+
+export type { Plan, PlanLimits, PlanPrices, CreatePlanDto, UpdatePlanDto, FindAllPlansParams, PaginatedPlans } from './plan';
+
 // ── Usuario ─────────────────────────────────────────────────────────────────
 
 export interface User {
@@ -62,7 +66,6 @@ export interface BaseEntity {
 // ── Enumeraciones del Backend ───────────────────────────────────────────────
 
 export type TenantStatus = 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
-export type TenantPlan = 'BASIC' | 'PREMIUM' | 'ENTERPRISE';
 export type PropertyType = 'CONJUNTO' | 'EDIFICIO' | 'TORRE' | 'CASA_INDEPENDIENTE';
 export type UnitType = 'APARTMENT' | 'HOUSE' | 'COMMERCIAL' | 'PARKING';
 export type UnitStatus = 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
@@ -77,7 +80,8 @@ export type MaintenanceStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'CANCEL
 export interface Tenant extends BaseEntity {
   name: string;
   subdomain: string;
-  plan: TenantPlan;
+  planId: string;
+  plan?: { id: string; name: string; slug: string; limits: PlanLimits };
   status: TenantStatus;
   contactEmail?: string;
   contactPhone?: string;
@@ -86,7 +90,7 @@ export interface Tenant extends BaseEntity {
 export interface CreateTenantDto {
   name: string;
   subdomain: string;
-  plan: TenantPlan;
+  planId: string;
   contactEmail?: string;
   contactPhone?: string;
 }
@@ -94,7 +98,7 @@ export interface CreateTenantDto {
 export interface UpdateTenantDto {
   name?: string;
   subdomain?: string;
-  plan?: TenantPlan;
+  planId?: string;
   contactEmail?: string;
   contactPhone?: string;
 }
@@ -103,7 +107,7 @@ export interface FindAllTenantsParams {
   page?: number;
   limit?: number;
   status?: TenantStatus;
-  plan?: TenantPlan;
+  planId?: string;
 }
 
 // ── Dominio: Property ───────────────────────────────────────────────────────
@@ -273,7 +277,7 @@ export interface Metrics {
   totalResidents: number;
   occupancyRate: number;
   unitsByStatus: Record<UnitStatus, number>;
-  tenantsByPlan: Record<TenantPlan, number>;
+  tenantsByPlan: Record<string, number>;
   fees: FeeMetrics;
   visitors: VisitorMetrics;
   maintenance: MaintenanceMetrics;
