@@ -7,7 +7,7 @@ interface JwtPayload {
   sub: string;
   client_id: string;
   role: string;
-  plan: string;
+  plan: string | { id: string; slug: string };
   permissions: Array<{ resource: string; action: string }>;
 }
 
@@ -30,12 +30,33 @@ export class JwtAuthGuard implements CanActivate {
       const decoded = jwt.verify(token, secret) as JwtPayload;
 
       // Adjuntar datos del usuario al request
+      const planData = decoded.plan;
+
+      // Backward compatibility: old tokens have plan as string, new ones as object
+      let planId: string | null = null;
+      let planSlug: string;
+      let plan: { id: string; slug: string };
+
+      if (typeof planData === 'string') {
+        // Old format — keep as-is (will be replaced on next login)
+        planId = null;
+        planSlug = planData.toLowerCase();
+        plan = { id: '', slug: planSlug };
+      } else {
+        // New format
+        planId = planData.id;
+        planSlug = planData.slug;
+        plan = planData;
+      }
+
       request['user'] = {
         id: decoded.sub,
         client_id: decoded.client_id,
         clientId: decoded.client_id,
         role: decoded.role,
-        plan: decoded.plan,
+        plan,
+        planId,
+        planSlug,
         permissions: decoded.permissions,
         ipAddress: request.ip || request.headers['x-forwarded-for'] || 'unknown',
       };

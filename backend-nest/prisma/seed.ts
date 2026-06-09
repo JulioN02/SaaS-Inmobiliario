@@ -18,11 +18,15 @@ const RESOURCES = [
   'occupancy',
   'fee',
   'maintenance',
+  'plan',
   'visitor',
   'announcement',
   'website',
   'audit',
   'metrics',
+  'subscription',
+  'invoice',
+  'payment',
 ] as const;
 
 const ACTIONS = ['read', 'create', 'update', 'delete'] as const;
@@ -181,7 +185,58 @@ async function seed() {
     console.log(`   ✅ ${roleName}: ${permissions.length} permissions assigned`);
   }
 
-  // ── 4. Platform Tenant + SuperAdmin ─────────────────────────────────────
+  // ── 4. Default Plans ────────────────────────────────────────────────────
+  console.log('📋 Creating default plans...');
+  const plans = [
+    {
+      name: 'Básico',
+      slug: 'basic',
+      description: 'Para conjuntos pequeños — 1 propiedad, hasta 100 unidades, 5 usuarios',
+      limits: { properties: 1, units: 100, users: 5 },
+      prices: { monthly: 0, yearly: 0 },
+      features: ['Sitio web público', 'RBAC completo', 'Gestión de residentes', 'Control de visitantes', 'Solicitudes de mantenimiento'],
+      isActive: true,
+      sortOrder: 1,
+    },
+    {
+      name: 'Premium',
+      slug: 'premium',
+      description: 'Para conjuntos medianos — 10 propiedades, hasta 500 unidades, 15 usuarios',
+      limits: { properties: 10, units: 500, users: 15 },
+      prices: { monthly: 0, yearly: 0 },
+      features: ['Sitio web público', 'RBAC completo', 'Gestión de residentes', 'Control de visitantes', 'Solicitudes de mantenimiento', 'Múltiples propiedades', 'Auditoría completa', 'Reportes avanzados'],
+      isActive: true,
+      sortOrder: 2,
+    },
+    {
+      name: 'Enterprise',
+      slug: 'enterprise',
+      description: 'Sin límites — propiedades ilimitadas, unidades ilimitadas, usuarios ilimitados',
+      limits: { properties: -1, units: -1, users: -1 },
+      prices: { monthly: 0, yearly: 0 },
+      features: ['Sitio web público', 'RBAC completo', 'Gestión de residentes', 'Control de visitantes', 'Solicitudes de mantenimiento', 'Múltiples propiedades', 'Auditoría completa', 'Reportes avanzados', 'Soporte prioritario', 'API completa'],
+      isActive: true,
+      sortOrder: 3,
+    },
+  ];
+
+  for (const planData of plans) {
+    await prisma.plan.upsert({
+      where: { slug: planData.slug },
+      update: planData,
+      create: planData,
+    });
+  }
+  console.log(`   ✅ ${plans.length} default plans created`);
+
+  // Store plan IDs for later use
+  const planMap = new Map<string, string>();
+  const allPlans = await prisma.plan.findMany();
+  for (const p of allPlans) {
+    planMap.set(p.slug, p.id);
+  }
+
+  // ── 5. Platform Tenant + SuperAdmin ─────────────────────────────────────
   console.log('🏢 Creating platform tenant...');
   const platformTenant = await prisma.tenant.upsert({
     where: { subdomain: 'platform' },
@@ -189,7 +244,7 @@ async function seed() {
     create: {
       name: 'Plataforma SaaS Inmobiliario',
       subdomain: 'platform',
-      plan: 'ENTERPRISE' as any,
+      planId: planMap.get('enterprise')!,
       status: 'ACTIVE' as any,
       contactEmail: 'admin@platform.com',
     },
@@ -225,7 +280,7 @@ async function seed() {
   });
   console.log(`   ✅ SuperAdmin: ${superAdmin.email} / Admin_Pass_2026!`);
 
-  // ── 5. Demo Tenant: Conjunto Residencial Los Álamos ─────────────────────
+  // ── 6. Demo Tenant: Conjunto Residencial Los Álamos ─────────────────────
   console.log('\n🏘️ Creating demo tenant...');
   const demoTenant = await prisma.tenant.upsert({
     where: { subdomain: 'losalamos' },
@@ -233,14 +288,14 @@ async function seed() {
     create: {
       name: 'Conjunto Residencial Los Álamos',
       subdomain: 'losalamos',
-      plan: 'PREMIUM' as any,
+      planId: planMap.get('premium')!,
       status: 'ACTIVE' as any,
       contactEmail: 'admin@losalamos.com',
     },
   });
   console.log(`   ✅ Demo tenant: ${demoTenant.name} (${demoTenant.id})`);
 
-  // ── 6. Demo Users ────────────────────────────────────────────────────────
+  // ── 7. Demo Users ────────────────────────────────────────────────────────
   console.log('👤 Creating demo users...');
   const adminTenantRoleId = roleMap.get('ADMIN_TENANT')!;
   const adminRoleId = roleMap.get('ADMINISTRATIVA')!;
@@ -313,7 +368,7 @@ async function seed() {
   });
   console.log(`   ✅ Portería: ${porteroUser.email} / Demo_2026!`);
 
-  // ── 7. Demo Properties ───────────────────────────────────────────────────
+  // ── 8. Demo Properties ───────────────────────────────────────────────────
   console.log('🏢 Creating demo properties...');
   const property1 = await prisma.property.create({
     data: {
@@ -336,7 +391,7 @@ async function seed() {
   });
   console.log(`   ✅ Properties: ${property1.name}, ${property2.name}`);
 
-  // ── 8. Towers ────────────────────────────────────────────────────────────
+  // ── 9. Towers ────────────────────────────────────────────────────────────
   console.log('🏗️ Creating towers...');
   const towerA = await prisma.tower.create({
     data: {
@@ -356,7 +411,7 @@ async function seed() {
   });
   console.log(`   ✅ Towers: ${towerA.name}, ${towerB.name}`);
 
-  // ── 9. Units ─────────────────────────────────────────────────────────────
+  // ── 10. Units ────────────────────────────────────────────────────────────
   console.log('🔢 Creating units...');
   const towerAUnits: string[] = [];
   const towerBUnits: string[] = [];
@@ -409,7 +464,7 @@ async function seed() {
 
   console.log(`   ✅ ${towerAUnits.length + towerBUnits.length + UNIT_LABELS.slice(8).length} units created`);
 
-  // ── 10. Residents ────────────────────────────────────────────────────────
+  // ── 11. Residents ────────────────────────────────────────────────────────
   console.log('👨‍👩‍👧‍👦 Creating residents...');
   const residentIds: string[] = [];
   for (const r of RESIDENT_NAMES) {
@@ -428,7 +483,7 @@ async function seed() {
   }
   console.log(`   ✅ ${residentIds.length} residents created`);
 
-  // ── 11. Occupancies ──────────────────────────────────────────────────────
+  // ── 12. Occupancies ──────────────────────────────────────────────────────
   console.log('🔗 Creating occupancies...');
   const now = new Date();
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
@@ -506,7 +561,7 @@ async function seed() {
 
   console.log(`   ✅ 6 occupancies created (4 active, 2 historical)`);
 
-  // ── 12. Fees ─────────────────────────────────────────────────────────────
+  // ── 13. Fees ─────────────────────────────────────────────────────────────
   console.log('💰 Creating fees...');
   const periods = [
     { period: '2026-04', dueDate: new Date(2026, 3, 15) },
@@ -539,7 +594,7 @@ async function seed() {
   }
   console.log(`   ✅ ${periods.length * (towerAUnits.length + towerBUnits.length)} fees created`);
 
-  // ── 13. Maintenance Requests ────────────────────────────────────────────
+  // ── 14. Maintenance Requests ────────────────────────────────────────────
   console.log('🔧 Creating maintenance requests...');
   const maintenanceItems = [
     { unitId: towerAUnits[0], title: 'Fuga de agua en baño principal', description: 'El lavamanos del baño principal presenta una fuga constante', status: 'IN_PROGRESS' as const },
@@ -565,7 +620,7 @@ async function seed() {
   }
   console.log(`   ✅ ${maintenanceItems.length} maintenance requests created`);
 
-  // ── 14. Visitors ─────────────────────────────────────────────────────────
+  // ── 15. Visitors ─────────────────────────────────────────────────────────
   console.log('🚪 Creating visitors...');
   const visitors = [
     { visitorName: 'Luis Fernando Pérez', documentNumber: '1078901234', unitId: towerAUnits[0], entryDate: new Date(2026, 4, 10, 9, 30), notes: 'Visita a Carlos Mendoza' },
@@ -591,7 +646,7 @@ async function seed() {
   }
   console.log(`   ✅ ${visitors.length} visitors created`);
 
-  // ── 15. Announcements ────────────────────────────────────────────────────
+  // ── 16. Announcements ────────────────────────────────────────────────────
   console.log('📢 Creating announcements...');
   const announcements = [
     { title: 'Corte de agua programado', content: 'Se informa a todos los residentes que el día sábado 15 de mayo se realizará mantenimiento a la tubería principal. El servicio de agua estará suspendido de 8:00 AM a 2:00 PM.', priority: 'HIGH' as const, targetRoles: ['ADMIN_TENANT', 'ADMINISTRATIVA'] as any },
@@ -616,7 +671,7 @@ async function seed() {
   }
   console.log(`   ✅ ${announcements.length} announcements created`);
 
-  // ── 16. Website Config ───────────────────────────────────────────────────
+  // ── 17. Website Config ───────────────────────────────────────────────────
   console.log('🌐 Creating website config...');
   await prisma.websiteConfig.upsert({
     where: { tenantId: demoTenant.id },
@@ -633,6 +688,103 @@ async function seed() {
     },
   });
   console.log(`   ✅ Website config created`);
+
+  // ── 18. Billing — Platform Tenant (Enterprise, ACTIVE) ────────────────────
+  console.log('💳 Creating platform tenant billing...');
+  const platformNow = new Date();
+  const platformPeriodStart = new Date(platformNow.getFullYear(), platformNow.getMonth(), 1);
+  const platformPeriodEnd = new Date(platformNow.getFullYear(), platformNow.getMonth() + 1, 0);
+
+  await prisma.subscription.upsert({
+    where: { tenantId: platformTenant.id },
+    update: {},
+    create: {
+      tenantId: platformTenant.id,
+      planId: planMap.get('enterprise')!,
+      status: 'ACTIVE' as any,
+      periodStart: platformPeriodStart,
+      periodEnd: platformPeriodEnd,
+    },
+  });
+
+  await prisma.billingConfig.upsert({
+    where: { tenantId: platformTenant.id },
+    update: {},
+    create: {
+      tenantId: platformTenant.id,
+      billingCycle: 'MONTHLY' as any,
+      currency: 'COP',
+      gracePeriodDays: 5,
+    },
+  });
+  console.log(`   ✅ Platform tenant billing configured`);
+
+  // ── 19. Billing — Demo Tenant Los Álamos (Premium, ACTIVE) ────────────────
+  console.log('💳 Creating demo tenant billing...');
+  const demoNow = new Date();
+  const demoTrialPeriodStart = new Date(demoNow.getFullYear(), demoNow.getMonth() - 2, 1);
+  const demoPeriodEnd = new Date(demoNow.getFullYear(), demoNow.getMonth() + 1, 0);
+  const demoTrialEndsAt = new Date(demoNow.getFullYear(), demoNow.getMonth() - 2, 15);
+
+  await prisma.subscription.upsert({
+    where: { tenantId: demoTenant.id },
+    update: {},
+    create: {
+      tenantId: demoTenant.id,
+      planId: planMap.get('premium')!,
+      status: 'ACTIVE' as any,
+      periodStart: demoTrialPeriodStart,
+      periodEnd: demoPeriodEnd,
+      trialEndsAt: demoTrialEndsAt,
+    },
+  });
+
+  await prisma.billingConfig.upsert({
+    where: { tenantId: demoTenant.id },
+    update: {},
+    create: {
+      tenantId: demoTenant.id,
+      billingCycle: 'MONTHLY' as any,
+      currency: 'COP',
+      gracePeriodDays: 5,
+    },
+  });
+
+  // Seed a PENDING invoice for the demo tenant
+  const demoSavedSubscription = await prisma.subscription.findUnique({
+    where: { tenantId: demoTenant.id },
+  });
+
+  const invoiceNow = new Date();
+  const invoicePeriodStart = new Date(invoiceNow.getFullYear(), invoiceNow.getMonth(), 1);
+  const invoicePeriodEnd = new Date(invoiceNow.getFullYear(), invoiceNow.getMonth() + 1, 0);
+  const invoiceDueDate = new Date(invoiceNow.getFullYear(), invoiceNow.getMonth(), 15);
+
+  // Only create if not exists
+  const existingInvoice = await prisma.invoice.findFirst({
+    where: { tenantId: demoTenant.id, status: 'PENDING' as any },
+  });
+
+  if (!existingInvoice) {
+    await prisma.invoice.create({
+      data: {
+        subscriptionId: demoSavedSubscription!.id,
+        tenantId: demoTenant.id,
+        planId: planMap.get('premium')!,
+        amount: 0, // Free plan demo
+        currency: 'COP',
+        status: 'PENDING' as any,
+        periodStart: invoicePeriodStart,
+        periodEnd: invoicePeriodEnd,
+        dueDate: invoiceDueDate,
+        notes: 'Factura mensual - Plan Premium',
+      },
+    });
+    console.log(`   ✅ Demo invoice created`);
+  } else {
+    console.log(`   ✅ Demo invoice already exists`);
+  }
+  console.log(`   ✅ Demo tenant billing configured`);
 
   // ── Summary ──────────────────────────────────────────────────────────────
   console.log('\n' + '='.repeat(60));
@@ -651,6 +803,7 @@ async function seed() {
   console.log('');
   console.log('📦 DATA CREADA:');
   console.log(`   • ${ROLES.length} roles con permisos`);
+  console.log(`   • ${plans.length} planes (Básico, Premium, Enterprise)`);
   console.log(`   • 2 tenants (Platform + Los Álamos)`);
   console.log(`   • 4 usuarios de prueba`);
   console.log(`   • 2 propiedades con ${towerAUnits.length + towerBUnits.length + UNIT_LABELS.slice(8).length} unidades`);
@@ -661,6 +814,7 @@ async function seed() {
   console.log(`   • ${visitors.length} visitantes registrados`);
   console.log(`   • ${announcements.length} anuncios`);
   console.log('   • Configuración de sitio web');
+  console.log('   • Suscripciones y configuración de facturación para 2 tenants');
   console.log('');
   console.log('🌱 Seed completed!');
 }

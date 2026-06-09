@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TenantController } from './tenant.controller';
 import { TenantService } from './tenant.service';
-import { TenantPlan, TenantStatus } from '@prisma/client';
+import { TenantStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../../common/guards/tenant.guard';
 import { RbacGuard } from '../../common/guards/rbac.guard';
@@ -86,7 +86,8 @@ describe('TenantController', () => {
         id: tenantId,
         name: 'Test Tenant',
         subdomain: 'test',
-        plan: TenantPlan.BASIC,
+        planId: 'plan-uuid',
+        plan: { id: 'plan-uuid', name: 'Básico', slug: 'basic', limits: { properties: 1, units: 100, users: 5 } },
         status: TenantStatus.ACTIVE,
       };
 
@@ -104,7 +105,7 @@ describe('TenantController', () => {
       const createDto = {
         name: 'New Tenant',
         subdomain: 'newtenant',
-        plan: TenantPlan.PREMIUM,
+        planId: 'plan-premium-uuid',
       };
       const userId = 'user-uuid';
       const expectedResult = {
@@ -131,7 +132,7 @@ describe('TenantController', () => {
       const createDto = {
         name: 'New Tenant',
         subdomain: 'newtenant',
-        plan: TenantPlan.PREMIUM,
+        planId: 'plan-premium-uuid',
         contactEmail: 'custom@example.com',
       };
       const userId = 'user-uuid';
@@ -139,7 +140,7 @@ describe('TenantController', () => {
         id: 'new-tenant-uuid-2',
         name: 'New Tenant',
         subdomain: 'newtenant',
-        plan: TenantPlan.PREMIUM,
+        planId: 'plan-premium-uuid',
         status: TenantStatus.ACTIVE,
         contactEmail: 'custom@example.com',
         contactPhone: null,
@@ -212,15 +213,19 @@ describe('TenantController', () => {
   describe('changePlan', () => {
     it('should change tenant plan', async () => {
       const tenantId = 'tenant-uuid';
-      const newPlan = TenantPlan.ENTERPRISE;
+      const planId = 'plan-enterprise-uuid';
       const userId = 'user-uuid';
-      const expectedResult = { id: tenantId, plan: newPlan };
+      const expectedResult = {
+        id: tenantId,
+        planId: planId,
+        plan: { id: planId, name: 'Enterprise', slug: 'enterprise', limits: { properties: -1, units: -1, users: -1 } },
+      };
 
       mockTenantService.changePlan.mockResolvedValue(expectedResult);
 
-      const result = await controller.changePlan(tenantId, newPlan, userId);
+      const result = await controller.changePlan(tenantId, planId, userId);
 
-      expect(service.changePlan).toHaveBeenCalledWith(tenantId, newPlan, { userId });
+      expect(service.changePlan).toHaveBeenCalledWith(tenantId, planId, { userId });
       expect(result).toEqual(expectedResult);
     });
   });

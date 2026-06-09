@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { useTenantStore } from '../../stores/tenantStore';
 import { toast } from '../../stores/toastStore';
-import type { Tenant, TenantStatus, TenantPlan, FindAllTenantsParams } from '../../types';
+import type { Tenant, TenantStatus, FindAllTenantsParams } from '../../types';
 import { ConfirmDialog } from '../../components/Shared/ConfirmDialog';
 import styles from './TenantPage.module.css';
 import { TenantDetailPage } from './TenantDetailPage';
@@ -124,13 +124,8 @@ export function TenantPage() {
   };
 
   // Formatear plan
-  const formatPlan = (plan: TenantPlan) => {
-    const labels: Record<TenantPlan, string> = {
-      BASIC: 'Básico',
-      PREMIUM: 'Premium',
-      ENTERPRISE: 'Enterprise',
-    };
-    return labels[plan] || plan;
+  const formatPlan = (plan: { id: string; name: string; slug: string } | undefined) => {
+    return plan?.name || 'Sin plan';
   };
 
   // Formatear estado
@@ -204,7 +199,7 @@ export function TenantPage() {
                     <code className={styles.subdomain}>{tenant.subdomain}</code>
                   </td>
                   <td>
-                    <span className={`${styles.planBadge} ${styles[tenant.plan.toLowerCase()]}`}>
+                    <span className={`${styles.planBadge} ${styles[tenant.plan?.slug || 'sin-plan']}`}>
                       {formatPlan(tenant.plan)}
                     </span>
                   </td>

@@ -3,7 +3,7 @@
    ============================================================================= */
 
 import { create } from 'zustand';
-import type { Tenant, TenantPlan, FindAllTenantsParams } from '../types';
+import type { Tenant, FindAllTenantsParams } from '../types';
 import {
   findAllTenants,
   findTenantById,
@@ -34,7 +34,7 @@ interface TenantState {
   updateTenant: (id: string, dto: UpdateTenantDto) => Promise<Tenant>;
   suspendTenant: (id: string) => Promise<Tenant>;
   activateTenant: (id: string) => Promise<Tenant>;
-  changeTenantPlan: (id: string, plan: TenantPlan) => Promise<Tenant>;
+  changeTenantPlan: (id: string, planId: string) => Promise<Tenant>;
   deleteTenant: (id: string) => Promise<void>;
   setSelectedTenant: (tenant: Tenant | null) => void;
   clearError: () => void;
@@ -147,10 +147,10 @@ export const useTenantStore = create<TenantState>((set) => ({
     }
   },
 
-  changeTenantPlan: async (id: string, plan: TenantPlan) => {
+  changeTenantPlan: async (id: string, planId: string) => {
     set({ loading: true, error: null });
     try {
-      const tenant = await changeTenantPlan(id, plan);
+      const tenant = await changeTenantPlan(id, planId);
       set((state) => ({
         tenants: state.tenants.map((t) => (t.id === id ? tenant : t)),
         selectedTenant: state.selectedTenant?.id === id ? tenant : state.selectedTenant,
