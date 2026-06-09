@@ -11,6 +11,15 @@ export type UserRole = 'SUPER_ADMIN' | 'ADMIN_TENANT' | 'ADMINISTRATIVA' | 'PORT
 
 export type { Plan, PlanLimits, PlanPrices, CreatePlanDto, UpdatePlanDto, FindAllPlansParams, PaginatedPlans } from './plan';
 
+// ── Billing ─────────────────────────────────────────────────────────────────
+
+export type {
+  SubscriptionStatus, InvoiceStatus, PaymentMethod, BillingCycle,
+  BillingMetrics, SubscriptionDto, InvoiceDto, PaymentDto,
+  BillingConfigDto, TenantBillingStatus,
+  CreateInvoiceDto, CreatePaymentDto, UpdateBillingConfigDto,
+} from './billing';
+
 // ── Usuario ─────────────────────────────────────────────────────────────────
 
 export interface User {
