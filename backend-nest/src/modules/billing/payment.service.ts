@@ -107,6 +107,14 @@ export class PaymentService {
       });
     }
 
+    // Check for full reactivation (no remaining overdue invoices)
+    try {
+      await this.checkAndReactivate(dto.tenantId);
+    } catch (err) {
+      // Non-blocking: log but don't fail the payment
+      console.error(`Reactivation failed for tenant ${dto.tenantId}:`, (err as Error).message);
+    }
+
     // Audit log
     await this.auditService.log({
       tenantId: dto.tenantId,
@@ -143,6 +151,49 @@ export class PaymentService {
     }
 
     return this.mapToResponse(payment, payment.invoice);
+  }
+
+  private async checkAndReactivate(tenantId: string): Promise<void> {
+    const overdueCount = await this.prisma.invoice.count({
+      where: {
+        tenantId,
+        status: { in: ['PENDING', 'OVERDUE'] },
+      },
+    });
+
+    if (overdueCount === 0) {
+      // Reactivate subscription
+      await this.prisma.subscription.update({
+        where: { tenantId },
+        data: { status: SubscriptionStatus.ACTIVE },
+      });
+
+      // Reactivate tenant if suspended
+      const tenant = await this.prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { status: true },
+      });
+
+      if (tenant?.status === TenantStatus.SUSPENDED) {
+        await this.prisma.tenant.update({
+          where: { id: tenantId },
+          data: { status: TenantStatus.ACTIVE },
+        });
+      }
+
+      // Audit log
+      await this.auditService.log({
+        entity: AuditEntity.subscription,
+        action: AuditAction.ACTIVATE,
+        entityId: tenantId,
+        tenantId,
+        userId: 'system',
+        snapshot: {
+          reason: 'payment_cleared',
+          overdueCleared: true,
+        },
+      });
+    }
   }
 
   private mapToResponse(payment: any, invoice?: any): PaymentResponseDto {

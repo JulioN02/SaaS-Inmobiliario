@@ -24,6 +24,9 @@ import { PublicModule } from './modules/public/public.module';
 import { SharedModule } from './modules/shared/shared.module';
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 import { BillingModule } from './modules/billing/billing.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
+import { WebhookController } from './modules/payment-gateway/webhook.controller';
 
 @Module({
   imports: [
@@ -54,9 +57,11 @@ import { BillingModule } from './modules/billing/billing.module';
     PlanModule,
     WebsiteModule,
     BillingModule,
+    SchedulerModule,
+    PaymentGatewayModule.forRoot(),
     PublicModule,
   ],
-  controllers: [],
+  controllers: [WebhookController],
   providers: [
     PrismaService,
     {
