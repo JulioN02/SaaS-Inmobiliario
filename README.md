@@ -39,7 +39,9 @@ Para probar el sistema completo, sigue las instrucciones de [ejecución local](#
 | **ORM** | Prisma 5 |
 | **Autenticación** | JWT (stateless) |
 | **Documentación API** | Swagger / OpenAPI |
-| **Testing** | Jest (backend) |
+| **Testing** | Jest (backend) + Vitest (frontend) |
+| **Tareas programadas** | @nestjs/schedule (auto-suspensión de tenants) |
+| **Pasarela de pago** | Interfaz desacoplada (NullPaymentGateway offline-first + Stripe configurable) |
 | **Infraestructura** | Docker, GitHub Actions |
 
 ---
@@ -71,7 +73,11 @@ SaaS-Inmobiliario/
 │   │       ├── announcement/
 │   │       ├── website/   # CMS por tenant
 │   │       ├── audit/     # Log inmutable
-│   │       └── metrics/
+│   │       ├── metrics/
+│   │       ├── plan/      # Planes SaaS (límites dinámicos por plan)
+│   │       ├── billing/   # Suscripciones, facturas, pagos
+│   │       ├── payment-gateway/  # Interfaz de pasarela (offline + Stripe)
+│   │       └── scheduler/ # Auto-suspensión de tenants (cron)
 │   ├── prisma/
 │   │   ├── schema.prisma
 │   │   ├── seed.ts
@@ -183,6 +189,10 @@ npm run test:cov        # Con cobertura
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | POST | `/auth/login` | Inicio de sesión (requiere header `x-tenant-id`) |
+| GET | `/plans` | Planes SaaS (CRUD, activos, toggle) — solo SuperAdmin |
+| GET | `/subscriptions` | Suscripciones por tenant |
+| GET | `/invoices` | Facturas (crear, finalizar, cancelar) |
+| GET | `/payments` | Pagos registrados (reactivación automática) |
 | GET | `/metrics` | Dashboard con métricas del tenant |
 | GET | `/fees` | Cuotas (filtro por periodo, estado, unidad) |
 | GET | `/maintenance` | Solicitudes de mantenimiento |
@@ -217,15 +227,21 @@ Si no se configura, el frontend apuntará a `http://localhost:3000` (solo funcio
 
 ## 📊 Estado del Proyecto
 
-- **Backend:** 20 módulos funcionales, 167 tests unitarios
-- **Frontend:** 16 rutas con Error Boundaries, dashboard con métricas reales
+- **Backend:** más de 20 módulos funcionales, 208 tests unitarios
+- **Frontend:** 20 rutas con Error Boundaries, dashboard con métricas reales
 - **Auth:** JWT + RBAC dinámico por permisos
 - **Multi-tenancy:** Aislamiento por tenant_id vía JWT
+- **Facturación:** módulo billing (suscripciones, facturas, pagos) con interfaz de pasarela desacoplada (offline-first, Stripe configurable)
+- **Automatización:** auto-suspensión de tenants por cron con período de gracia y reactivación automática al regularizar pagos
 - **API Documentada:** Swagger en `/docs`
 
 ### Módulos implementados
 
 - [x] Tenant (CRUD, suspensión, planes)
+- [x] Planes SaaS (CRUD, límites dinámicos por plan, toggle activo)
+- [x] Suscripciones, facturas y pagos (billing)
+- [x] Interfaz de pasarela de pago (offline-first + Stripe)
+- [x] Auto-suspensión (cron + reactivación automática)
 - [x] Usuarios y Roles (RBAC dinámico)
 - [x] Propiedades, Torres, Unidades
 - [x] Residentes y Ocupaciones (con historial)
@@ -237,6 +253,20 @@ Si no se configura, el frontend apuntará a `http://localhost:3000` (solo funcio
 - [x] Auditoría (log inmutable)
 - [x] Métricas / Dashboard
 - [x] Endpoints públicos (website, unidades publicadas)
+
+---
+
+## 🚢 Roadmap de Entregas (Pull Requests)
+
+| PR | Alcance | Estado |
+|----|---------|--------|
+| #1 | Plan API + BD + Seed — modelo `Plan` (límites/precios/features en JSONB), 7 endpoints, 3 planes por defecto | ✅ |
+| #2 | Tenant FK a Plan + JWT con límites dinámicos (se leen de la tabla `Plan`, no de constantes) | ✅ |
+| #3 | Frontend Plan UI — PlanPage/PlanDetailPage, store con tests, selector dinámico en TenantDetailPage | ✅ |
+| #4 | Billing Backend — Subscription, Invoice, Payment, BillingConfig + controllers y servicios | ✅ |
+| #5 | Billing Dashboard Frontend — KPIs, gestión de facturas/pagos/suscripciones (solo SUPER_ADMIN) | ✅ |
+| #6 | Auto-suspensión (cron + reactivación automática) y Payment Gateway Interface (offline-first + Stripe) | ✅ |
+| #7 | Dominios personalizados (custom domains) | 🔧 en desarrollo |
 
 ---
 
