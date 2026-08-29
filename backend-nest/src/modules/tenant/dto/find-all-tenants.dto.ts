@@ -1,6 +1,6 @@
-import { IsOptional, IsEnum, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { TenantStatus, TenantPlan } from '@prisma/client';
+import { TenantStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 
 export class FindAllTenantsDto {
@@ -9,16 +9,16 @@ export class FindAllTenantsDto {
     enum: TenantStatus,
   })
   @IsOptional()
-  @IsEnum(TenantStatus)
+  @IsString()
   status?: TenantStatus;
 
   @ApiPropertyOptional({
-    description: 'Filtrar por plan',
-    enum: TenantPlan,
+    description: 'Filtrar por ID del plan',
+    example: 'uuid-del-plan',
   })
   @IsOptional()
-  @IsEnum(TenantPlan)
-  plan?: TenantPlan;
+  @IsString()
+  planId?: string;
 
   @ApiPropertyOptional({
     description: 'Número de página',

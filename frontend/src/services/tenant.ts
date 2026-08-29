@@ -3,13 +3,13 @@
    ============================================================================= */
 
 import { api } from './api';
-import type { Tenant, TenantPlan, TenantStatus } from '../types';
+import type { Tenant, TenantStatus } from '../types';
 
 export interface FindAllTenantsParams {
   page?: number;
   limit?: number;
   status?: TenantStatus;
-  plan?: TenantPlan;
+  planId?: string;
 }
 
 export interface PaginatedTenants {
@@ -23,7 +23,7 @@ export interface PaginatedTenants {
 export interface CreateTenantDto {
   name: string;
   subdomain: string;
-  plan: TenantPlan;
+  planId: string;
   contactEmail?: string;
   contactPhone?: string;
 }
@@ -31,7 +31,7 @@ export interface CreateTenantDto {
 export interface UpdateTenantDto {
   name?: string;
   subdomain?: string;
-  plan?: TenantPlan;
+  planId?: string;
   contactEmail?: string;
   contactPhone?: string;
 }
@@ -68,8 +68,8 @@ export async function activateTenant(id: string): Promise<Tenant> {
   return response.data;
 }
 
-export async function changeTenantPlan(id: string, plan: TenantPlan): Promise<Tenant> {
-  const response = await api.patch<Tenant>(`/tenants/${id}/plan`, { plan });
+export async function changeTenantPlan(id: string, planId: string): Promise<Tenant> {
+  const response = await api.patch<Tenant>(`/tenants/${id}/plan`, { planId });
   return response.data;
 }
 

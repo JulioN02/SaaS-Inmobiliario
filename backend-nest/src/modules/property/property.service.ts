@@ -13,7 +13,6 @@ import {
   PropertyResponseDto,
 } from './dto';
 import { AuditAction, AuditEntity, Prisma } from '@prisma/client';
-import { PLAN_LIMITS } from '../../shared/constants/plan-limits';
 
 interface CallerCtx {
   userId: string;
@@ -205,16 +204,18 @@ export class PropertyService {
   private async validatePlanLimit(tenantId: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
+      include: { plan: { select: { limits: true } } },
     });
 
     if (!tenant) {
       throw new NotFoundException(`Tenant ${tenantId} no encontrado`);
     }
 
-    const limit = PLAN_LIMITS[tenant.plan].properties;
+    const limitValue = (tenant.plan.limits as any).properties;
+    const maxLimit = limitValue === -1 ? Infinity : limitValue;
 
-    // Enterprise has no limit
-    if (limit === Infinity) {
+    // No limit
+    if (maxLimit === Infinity) {
       return;
     }
 
@@ -225,9 +226,9 @@ export class PropertyService {
       },
     });
 
-    if (currentCount >= limit) {
+    if (currentCount >= maxLimit) {
       throw new ForbiddenException(
-        `Plan ${tenant.plan} permite máximo ${limit} propiedades. Actualmente tiene ${currentCount}.`,
+        `Límite del plan excedido: máximo ${maxLimit} propiedades. Actualmente tiene ${currentCount}.`,
       );
     }
   }

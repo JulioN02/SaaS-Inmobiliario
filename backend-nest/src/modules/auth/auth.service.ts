@@ -9,7 +9,7 @@ interface JwtPayload {
   sub: string;
   client_id: string;
   role: string;
-  plan: string;
+  plan: string | { id: string; slug: string };
   permissions: Array<{ resource: string; action: string }>;
 }
 
@@ -31,7 +31,11 @@ export class AuthService {
         deletedAt: null,
       },
       include: {
-        tenant: true,
+        tenant: {
+          include: {
+            plan: { select: { id: true, slug: true } },
+          },
+        },
         roleRef: {
           include: {
             permissions: {
@@ -74,7 +78,10 @@ export class AuthService {
         sub: user.id,
         client_id: user.tenantId,
         role: user.role,
-        plan: user.tenant.plan,
+        plan: {
+          id: user.tenant.plan.id,
+          slug: user.tenant.plan.slug,
+        },
         permissions,
       } as JwtPayload,
       jwtSecret,

@@ -29,6 +29,8 @@ const WebsitePage = lazy(() => import('./pages/website') as any);
 const TenantPage = lazy(() => import('./pages/tenant') as any);
 const AuditPage = lazy(() => import('./pages/audit') as any);
 const MetricsPage = lazy(() => import('./pages/metrics') as any);
+const PlanPage = lazy(() => import('./pages/plan') as any);
+const BillingPage = lazy(() => import('./pages/billing') as any);
 
 // ── App ─────────────────────────────────────────────────────────────
 
@@ -49,6 +51,8 @@ function App() {
 
               {/* SuperAdmin */}
               <Route path="/tenants" element={<ErrorBoundary><Suspense fallback={<div style={{ padding: '24px' }}>Cargando...</div>}><TenantPage /></Suspense></ErrorBoundary>} />
+              <Route path="/plans" element={<ErrorBoundary><Suspense fallback={<div style={{ padding: '24px' }}>Cargando...</div>}><PlanPage /></Suspense></ErrorBoundary>} />
+              <Route path="/billing" element={<ErrorBoundary><Suspense fallback={<div style={{ padding: '24px' }}>Cargando...</div>}><BillingPage /></Suspense></ErrorBoundary>} />
               <Route path="/platform-metrics" element={<ErrorBoundary><Suspense fallback={<div style={{ padding: '24px' }}>Cargando...</div>}><MetricsPage /></Suspense></ErrorBoundary>} />
 
               {/* Dominio inmobiliario */}

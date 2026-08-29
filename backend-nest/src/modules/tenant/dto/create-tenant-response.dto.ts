@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TenantPlan, TenantStatus } from '@prisma/client';
+import { TenantStatus } from '@prisma/client';
 
 export class CreateTenantResponseDto {
   @ApiProperty({ description: 'ID único del tenant' })
@@ -11,8 +11,8 @@ export class CreateTenantResponseDto {
   @ApiProperty({ description: 'Subdominio único' })
   subdomain: string;
 
-  @ApiProperty({ enum: TenantPlan, description: 'Plan contratado' })
-  plan: TenantPlan;
+  @ApiProperty({ description: 'ID del plan asignado' })
+  planId: string;
 
   @ApiProperty({ enum: TenantStatus, description: 'Estado actual' })
   status: TenantStatus;
